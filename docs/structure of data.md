@@ -148,3 +148,34 @@ The file contains a Python dictionary with the following structure:
    - The 1-MAE metric specified in your plan represents accuracy (higher is better)
 
 This annotation file represents a key component of your research, providing the ground truth labels that your cross-attention CNN will learn to predict from the visual features extracted from the video data.
+
+
+
+
+Video Files:
+
+The video files are organized into subdirectories (training80_01, training80_02, etc.).
+Filenames follow the pattern [videoID].[segment].mp4 (e.g., _uNup91ZYw0.002.mp4).
+Annotation File:
+
+The annotation_training.pkl file contains a dictionary where:
+Keys are personality traits and "interview".
+Values are dictionaries mapping video filenames to scores.
+Analysis Plan:
+Consistency Check:
+
+Ensure all video files in train-1 are annotated in annotation_training.pkl.
+Verify that all annotated files exist in the train-1 directory.
+Data Organization:
+
+Group video files by their subdirectory for better management.
+Map annotations to their corresponding video files.
+
+The annotation_training.pkl file was successfully loaded, and its top-level keys are:
+
+extraversion
+neuroticism
+agreeableness
+conscientiousness
+openness
+interview
