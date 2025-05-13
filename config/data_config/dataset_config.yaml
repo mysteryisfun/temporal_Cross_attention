@@ -1,0 +1,81 @@
+# ChaLearn First Impressions V2 Dataset Configuration
+
+dataset:
+  name: "ChaLearn First Impressions V2"
+  version: "1.0"
+  source_url: "https://chalearnlap.cvc.uab.cat/dataset/24/description/"
+  license: "Research purposes only"
+  
+  # Dataset structure
+  structure:
+    video_format: "mp4"
+    annotation_format: "pkl"
+    train_videos_count: 6000
+    validation_videos_count: 2000
+    test_videos_count: 2000
+    
+  # Video characteristics
+  video:
+    avg_duration_seconds: 15
+    fps: 30
+    resolution: [720, 1280]  # [height, width]
+    
+  # Annotation details
+  annotations:
+    traits: ["extraversion", "neuroticism", "agreeableness", "conscientiousness", "openness"]
+    value_range: [0.0, 1.0]
+    
+# Data paths
+paths:
+  raw_data: "../data/raw"
+  processed_data: "../data/processed"
+  faces_data: "../data/faces"
+  optical_flow_data: "../data/optical_flow"
+  
+  annotations:
+    train: "../data/raw/annotation_training.pkl"
+    validation: "../data/raw/annotation_validation.pkl"
+    test: "../data/raw/annotation_test.pkl"
+    
+# Preprocessing parameters
+preprocessing:
+  # Frame extraction
+  frame_extraction:
+    method: "uniform"  # Options: uniform, keyframe
+    fps: 5  # Target frames per second to extract
+    
+  # Face detection
+  face_detection:
+    method: "mtcnn"  # Options: mtcnn, dlib, mediapipe
+    confidence_threshold: 0.95
+    min_face_size: 40
+    
+  # Face alignment
+  face_alignment:
+    target_size: [224, 224]  # [height, width]
+    normalization_method: "landmarks"  # Options: landmarks, affine
+    
+  # Optical flow
+  optical_flow:
+    method: "farneback"  # Options: farneback, lucas_kanade
+    params:
+      pyr_scale: 0.5
+      levels: 3
+      winsize: 15
+      iterations: 3
+      poly_n: 5
+      poly_sigma: 1.2
+      
+  # Data augmentation
+  augmentation:
+    enabled: true
+    horizontal_flip_prob: 0.5
+    rotation_range: 10  # degrees
+    brightness_range: [0.8, 1.2]
+    contrast_range: [0.8, 1.2]
+    
+# Data validation
+validation:
+  face_detection_min_success_rate: 0.9  # Minimum acceptable face detection rate
+  min_frames_per_video: 10  # Minimum number of frames required per video
+  check_facial_landmarks: true  # Whether to validate facial landmark detection

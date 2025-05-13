@@ -1,0 +1,67 @@
+# Logging Configuration
+
+# General logging settings
+general:
+  log_level: "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  log_format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  log_to_file: true
+  log_file_path: "../logs/research.log"
+  
+# Experiment tracking
+experiment_tracking:
+  # Weights & Biases configuration
+  wandb:
+    enabled: true
+    project_name: "personality-trait-prediction"
+    entity: null  # Your wandb username or team name
+    log_freq: 10  # Log every N batches
+    
+  # TensorBoard configuration
+  tensorboard:
+    enabled: true
+    log_dir: "../logs/tensorboard"
+    
+  # Custom experiment database
+  custom_db:
+    enabled: true
+    db_path: "../logs/experiment_tracker.csv"
+    
+# Data logging
+data_logging:
+  log_dataset_stats: true
+  log_preprocessing_metrics: true
+  log_data_quality: true
+  log_augmentation_stats: true
+  sample_visualization_count: 10  # Number of samples to visualize
+  
+# Model logging
+model_logging:
+  log_architecture: true
+  log_parameter_count: true
+  log_model_summary: true
+  log_weight_histograms: true
+  log_gradients: false  # Can be resource-intensive
+  
+# Training logging
+training_logging:
+  log_learning_rate: true
+  log_loss: true
+  log_metrics: true
+  log_per_trait_metrics: true
+  log_validation_predictions: true
+  log_batch_time: true
+  log_epoch_time: true
+  log_gpu_usage: true
+  
+# Evaluation logging
+evaluation_logging:
+  log_confusion_matrix: true
+  log_per_video_predictions: true
+  log_error_analysis: true
+  log_trait_correlations: true
+  
+# Visualization logging
+visualization_logging:
+  log_attention_maps: true
+  log_feature_maps: true
+  log_video_predictions: true

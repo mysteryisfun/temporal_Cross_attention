@@ -1,0 +1,59 @@
+# Training Configuration
+
+# Training hyperparameters
+training:
+  batch_size: 16
+  num_epochs: 100
+  initial_learning_rate: 0.0001
+  optimizer: "adam"  # Options: adam, sgd, adamw
+  optimizer_params:
+    adam:
+      beta1: 0.9
+      beta2: 0.999
+      epsilon: 1e-8
+    sgd:
+      momentum: 0.9
+      nesterov: true
+  
+  # Learning rate scheduler
+  lr_scheduler:
+    type: "reduce_on_plateau"  # Options: reduce_on_plateau, cosine_annealing, step_decay
+    patience: 5
+    factor: 0.5
+    min_lr: 1e-6
+    
+  # Early stopping
+  early_stopping:
+    enabled: true
+    patience: 10
+    min_delta: 0.001
+    restore_best_weights: true
+    
+  # Data loading
+  num_workers: 4
+  prefetch_factor: 2
+  pin_memory: true
+  
+# Loss function configuration
+loss:
+  type: "mse"  # Options: mse, mae, huber
+  huber_delta: 1.0  # Only used for huber loss
+  trait_weights: [1.0, 1.0, 1.0, 1.0, 1.0]  # Weights for each personality trait
+  
+# Evaluation metrics
+metrics:
+  primary: "1-mae"  # 1 minus Mean Absolute Error (ChaLearn metric)
+  additional: ["mae", "mse", "r2", "pearson_r"]
+  per_trait_metrics: true  # Whether to compute metrics per trait
+  
+# Checkpointing
+checkpoint:
+  save_best_only: true
+  save_weights_only: false
+  period: 1  # Save checkpoint every N epochs
+  path: "../results/model_checkpoints"
+  
+# Validation strategy
+validation:
+  validation_split: 0.0  # Using provided validation set, not splitting
+  validation_frequency: 1  # Validate every N epochs

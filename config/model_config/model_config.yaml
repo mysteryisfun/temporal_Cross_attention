@@ -1,0 +1,46 @@
+# Cross-Attention CNN Model Configuration
+
+# Static feature extraction module (2D CNN)
+static_cnn:
+  base_model: "resnet50"  # Options: resnet50, vgg16, inceptionv3
+  pretrained: true
+  freeze_layers: [0, 1, 2, 3]  # Freeze first 4 layers (layer 0, 1, 2, 3)
+  output_features: 2048
+  pooling: "avg"  # Options: avg, max, none
+  
+# Dynamic feature extraction module (3D CNN)
+dynamic_cnn:
+  architecture: "c3d"  # Options: c3d, i3d, r3d_18
+  pretrained: true
+  sequence_length: 16  # Number of frames to process as a sequence
+  output_features: 1024
+  pooling: "avg"  # Options: avg, max, none
+  
+# Cross-attention mechanism
+cross_attention:
+  type: "multihead"  # Options: multihead, dot_product, scaled_dot_product
+  num_heads: 4
+  dropout: 0.1
+  use_residual: true
+  use_layer_norm: true
+  hidden_dim: 512
+  
+# Feature fusion
+fusion:
+  method: "concatenate"  # Options: concatenate, add, weighted_sum
+  
+# Prediction head
+prediction_head:
+  hidden_layers: [512, 256]
+  dropout: 0.5
+  activation: "relu"  # Options: relu, leaky_relu, gelu
+  output_activation: "sigmoid"  # For values in [0,1] range
+  
+# Overall model architecture
+model:
+  name: "cross_attention_cnn"
+  input_shape:
+    static: [224, 224, 3]
+    dynamic: [16, 224, 224, 2]  # [sequence_length, height, width, flow_channels]
+  output_dim: 5  # Big Five personality traits
+  use_batch_norm: true
