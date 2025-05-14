@@ -11,14 +11,8 @@ def load_annotations(annotation_file):
         dict: Parsed annotations.
     """
     try:
-        with open(annotation_file, 'rb') as file:  # Ensure binary mode is used
-            try:
-                # First try with latin1 encoding
-                annotations = pickle.load(file, encoding='latin1')
-            except Exception:
-                # If that fails, try without encoding parameter
-                file.seek(0)
-                annotations = pickle.load(file)
+        with open(annotation_file, 'rb') as file:
+            annotations = pickle.load(file)
         return annotations
     except Exception as e:
         print(f"Error loading annotations: {e}")

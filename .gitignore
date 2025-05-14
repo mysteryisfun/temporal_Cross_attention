@@ -27,7 +27,8 @@ wheels/
 
 # Dataset
 data/raw/
-data/processed/
+data/processed/frames
+data/processed/frames_annotations
 data/faces/
 data/optical_flow/
 
