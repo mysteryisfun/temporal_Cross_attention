@@ -11,7 +11,7 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, project_root)
 
 from models.static_feature_extractor.feature_extractor import StaticFeatureExtractor
-from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from keras.preprocessing.image import load_img, img_to_array
 
 def visualize_features_on_image(image_path, output_path=None, model_path=None):
     """

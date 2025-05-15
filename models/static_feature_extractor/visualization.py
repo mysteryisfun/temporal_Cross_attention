@@ -3,8 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import cv2
-from tensorflow.keras.applications import ResNet50
-from tensorflow.keras.models import Model
+from keras.applications import ResNet50
+from keras.models import Model
 
 class FeatureVisualization:
     """

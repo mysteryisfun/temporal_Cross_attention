@@ -1,7 +1,7 @@
 import tensorflow as tf
-from tensorflow.keras.applications import ResNet50
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D, Input
+from keras.applications import ResNet50
+from keras.models import Model
+from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D, Input
 import yaml
 import os
 import sys

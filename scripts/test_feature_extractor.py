@@ -10,7 +10,7 @@ import sys
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, project_root)
 
-from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from keras.preprocessing.image import load_img, img_to_array
 from models.static_feature_extractor.feature_extractor import StaticFeatureExtractor
 from utils.logger import get_logger
 

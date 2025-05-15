@@ -3,12 +3,15 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+from sklearn.manifold import TSNE
+from umap import UMAP
 
 # Add the project root to the Python path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.insert(0, project_root)
 
-from tensorflow.keras.preprocessing import image
+from keras.utils import load_img, img_to_array
+
 from models.static_feature_extractor.feature_extractor import StaticFeatureExtractor
 from models.static_feature_extractor.visualization import FeatureVisualization
 from utils.logger import get_logger
@@ -66,8 +69,8 @@ class FeatureExtractorEvaluator:
         # Extract features from all images
         all_features = []
         for img_path in image_files:
-            img = image.load_img(img_path, target_size=(224, 224))
-            img_array = image.img_to_array(img)
+            img = load_img(img_path, target_size=(224, 224))
+            img_array = img_to_array(img)
             preprocessed = self.extractor.preprocess_image(img_array)
             features = self.extractor.extract_features(preprocessed)
             all_features.append(features[0])
@@ -123,8 +126,8 @@ class FeatureExtractorEvaluator:
             # Extract features from all images in this class
             dir_features = []
             for img_path in image_files:
-                img = image.load_img(img_path, target_size=(224, 224))
-                img_array = image.img_to_array(img)
+                img = load_img(img_path, target_size=(224, 224))
+                img_array = img_to_array(img)
                 preprocessed = self.extractor.preprocess_image(img_array)
                 features = self.extractor.extract_features(preprocessed)
                 dir_features.append(features[0])
@@ -178,8 +181,8 @@ class FeatureExtractorEvaluator:
         )
         
         # Load and preprocess the image
-        img = image.load_img(image_path, target_size=(224, 224))
-        img_array = image.img_to_array(img)
+        img = load_img(image_path, target_size=(224, 224))
+        img_array = img_to_array(img)
         preprocessed = self.extractor.preprocess_image(img_array)
         
         # Get activations
@@ -240,8 +243,8 @@ class FeatureExtractorEvaluator:
             
             # Extract features from all images in this class
             for img_path in image_files:
-                img = image.load_img(img_path, target_size=(224, 224))
-                img_array = image.img_to_array(img)
+                img = load_img(img_path, target_size=(224, 224))
+                img_array = img_to_array(img)
                 preprocessed = self.extractor.preprocess_image(img_array)
                 features = self.extractor.extract_features(preprocessed)
                 all_features.append(features[0])
@@ -291,6 +294,148 @@ class FeatureExtractorEvaluator:
         else:
             plt.show()
             
+    def plot_feature_tsne(self, image_dirs, num_images_per_dir=5, save_path=None):
+        """
+        Extract features and visualize using t-SNE.
+
+        Args:
+            image_dirs (dict): Dictionary mapping class names to directories.
+            num_images_per_dir (int): Number of images to process per directory.
+            save_path (str): Path to save the visualization.
+        """
+        self.logger.logger.info("Performing t-SNE visualization of features")
+
+        all_features = []
+        all_labels = []
+
+        for class_name, dir_path in image_dirs.items():
+            if not os.path.isdir(dir_path):
+                continue
+
+            image_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)
+                           if os.path.isfile(os.path.join(dir_path, f)) and
+                           f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+
+            if not image_files:
+                continue
+
+            image_files = image_files[:min(num_images_per_dir, len(image_files))]
+
+            for img_path in image_files:
+                img = load_img(img_path, target_size=(224, 224))
+                img_array = img_to_array(img)
+                preprocessed = self.extractor.preprocess_image(img_array)
+                features = self.extractor.extract_features(preprocessed)
+                all_features.append(features[0])
+                all_labels.append(class_name)
+
+        if len(all_features) < 2:
+            self.logger.logger.warning("Not enough samples for t-SNE visualization")
+            return
+
+        features_array = np.array(all_features)
+        tsne = TSNE(n_components=2, random_state=42)
+        reduced_features = tsne.fit_transform(features_array)
+
+        plt.figure(figsize=(10, 8))
+        unique_labels = list(set(all_labels))
+        colors = plt.cm.rainbow(np.linspace(0, 1, len(unique_labels)))
+
+        for i, label in enumerate(unique_labels):
+            mask = [l == label for l in all_labels]
+            plt.scatter(
+                reduced_features[mask, 0],
+                reduced_features[mask, 1],
+                c=[colors[i]],
+                label=label,
+                alpha=0.7
+            )
+
+        plt.xlabel("t-SNE Dimension 1")
+        plt.ylabel("t-SNE Dimension 2")
+        plt.title("t-SNE of CNN Features")
+        plt.legend()
+        plt.grid(alpha=0.3)
+
+        if save_path:
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            plt.savefig(save_path)
+            plt.close()
+            self.logger.logger.info(f"Saved t-SNE visualization to {save_path}")
+        else:
+            plt.show()
+
+    def plot_feature_umap(self, image_dirs, num_images_per_dir=5, save_path=None):
+        """
+        Extract features and visualize using UMAP.
+
+        Args:
+            image_dirs (dict): Dictionary mapping class names to directories.
+            num_images_per_dir (int): Number of images to process per directory.
+            save_path (str): Path to save the visualization.
+        """
+        self.logger.logger.info("Performing UMAP visualization of features")
+
+        all_features = []
+        all_labels = []
+
+        for class_name, dir_path in image_dirs.items():
+            if not os.path.isdir(dir_path):
+                continue
+
+            image_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)
+                           if os.path.isfile(os.path.join(dir_path, f)) and
+                           f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+
+            if not image_files:
+                continue
+
+            image_files = image_files[:min(num_images_per_dir, len(image_files))]
+
+            for img_path in image_files:
+                img = load_img(img_path, target_size=(224, 224))
+                img_array = img_to_array(img)
+                preprocessed = self.extractor.preprocess_image(img_array)
+                features = self.extractor.extract_features(preprocessed)
+                all_features.append(features[0])
+                all_labels.append(class_name)
+
+        if len(all_features) < 2:
+            self.logger.logger.warning("Not enough samples for UMAP visualization")
+            return
+
+        features_array = np.array(all_features)
+        umap = UMAP(n_components=2, random_state=42)
+        reduced_features = umap.fit_transform(features_array)
+
+        plt.figure(figsize=(10, 8))
+        unique_labels = list(set(all_labels))
+        colors = plt.cm.rainbow(np.linspace(0, 1, len(unique_labels)))
+
+        for i, label in enumerate(unique_labels):
+            mask = [l == label for l in all_labels]
+            plt.scatter(
+                reduced_features[mask, 0],
+                reduced_features[mask, 1],
+                c=[colors[i]],
+                label=label,
+                alpha=0.7
+            )
+
+        plt.xlabel("UMAP Dimension 1")
+        plt.ylabel("UMAP Dimension 2")
+        plt.title("UMAP of CNN Features")
+        plt.legend()
+        plt.grid(alpha=0.3)
+
+        if save_path:
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            plt.savefig(save_path)
+            plt.close()
+            self.logger.logger.info(f"Saved UMAP visualization to {save_path}")
+        else:
+            plt.show()
+
     def run_comprehensive_evaluation(self, data_dir, output_dir="results/evaluations"):
         """
         Run a comprehensive evaluation of the feature extractor.
@@ -350,6 +495,16 @@ class FeatureExtractorEvaluator:
             
         pca_path = os.path.join(output_dir, "feature_pca.png")
         self.plot_feature_pca(subject_dict, num_images_per_dir=5, save_path=pca_path)
+        
+        # 3. Visualize feature t-SNE
+        self.logger.logger.info("Generating t-SNE visualization")
+        tsne_path = os.path.join(output_dir, "feature_tsne.png")
+        self.plot_feature_tsne(subject_dict, num_images_per_dir=5, save_path=tsne_path)
+
+        # 4. Visualize feature UMAP
+        self.logger.logger.info("Generating UMAP visualization")
+        umap_path = os.path.join(output_dir, "feature_umap.png")
+        self.plot_feature_umap(subject_dict, num_images_per_dir=5, save_path=umap_path)
         
         # 4. Visualize layer activations for a sample image
         self.logger.logger.info("Visualizing layer activations")
