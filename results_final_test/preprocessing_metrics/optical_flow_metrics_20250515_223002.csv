@@ -1,0 +1,2 @@
+total_videos,processed_videos,failed_videos,total_flows,total_faces,flow_computation_rate,processing_timestamp,expected_flows,average_flow_magnitude,std_flow_magnitude,min_flow_magnitude,max_flow_magnitude,timestamp,process
+2,2,0,8,10,1.0,2025-05-15 22:30:02,8,3.2561407,0.86350054,2.3440173,4.576189,20250515_223002,optical_flow

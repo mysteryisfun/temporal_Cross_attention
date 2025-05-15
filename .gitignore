@@ -32,6 +32,11 @@ data/processed/frames_annotations
 data/faces/
 data/optical_flow/
 
+data_sample/raw/
+data_sample/processed/processed
+data_sample/faces/
+data_sample/optical_flow/
+
 # Results
 results/model_checkpoints/
 results/ablation_studies/
