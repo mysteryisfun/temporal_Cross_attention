@@ -52,7 +52,20 @@ def test_temporal_visualization(video_path, output_dir, num_frames=16):
         logger.logger.info("Computing optical flow")
         flow_computer = OpticalFlowComputer()
         frames = flow_computer.extract_frames_from_video(video_path, num_frames=num_frames)
-        flow_sequence = flow_computer.compute_optical_flow_sequence(frames)
+        
+        if frames is None or len(frames) == 0:
+            logger.logger.error(f"Failed to extract frames from {video_path}")
+            return False
+            
+        logger.logger.info(f"Extracted {len(frames)} frames")
+        
+        flow_sequence = flow_computer.compute_sequence_flow(frames)
+        
+        if flow_sequence is None or flow_sequence.size == 0:
+            logger.logger.error("Failed to compute optical flow sequence")
+            return False
+            
+        logger.logger.info(f"Computed optical flow with shape {flow_sequence.shape}")
         
         # Save the flow sequence for reference
         optical_flow_dir = os.path.join(output_dir, "optical_flow")
@@ -64,6 +77,7 @@ def test_temporal_visualization(video_path, output_dir, num_frames=16):
         # Step 3: Preprocess and extract features
         logger.logger.info("Preprocessing flow sequence")
         preprocessed = extractor.preprocess_flow_sequence(flow_sequence)
+        logger.logger.info(f"Preprocessed flow sequence with shape {preprocessed.shape}")
         
         # Step 4: Get intermediate activations from various layers
         logger.logger.info("Extracting intermediate activations")
@@ -102,47 +116,85 @@ def test_temporal_visualization(video_path, output_dir, num_frames=16):
         logger.logger.info("Generating temporal visualizations")
         
         # 5.1: Temporal evolution line graph
-        inception_3c_vis.visualize_temporal_feature_evolution(
-            activations=inception_3c_act,
-            feature_indices=[0, 10, 20, 30, 40],
-            save_path=os.path.join(visualizations_dir, "temporal_evolution.png")
-        )
-        logger.logger.info("Created temporal evolution visualization")
+        try:
+            logger.logger.info("Creating temporal evolution visualization")
+            inception_3c_vis.visualize_temporal_feature_evolution(
+                activations=inception_3c_act,
+                feature_indices=[0, 10, 20, 30, 40],
+                save_path=os.path.join(visualizations_dir, "temporal_evolution.png")
+            )
+            logger.logger.info("Created temporal evolution visualization")
+        except Exception as e:
+            logger.logger.error(f"Error creating temporal evolution visualization: {str(e)}")
+            import traceback
+            logger.logger.error(traceback.format_exc())
         
         # 5.2: Feature activation heatmap
-        inception_3c_vis.create_feature_activation_heatmap(
-            activations=inception_3c_act,
-            feature_idx=10,
-            save_path=os.path.join(visualizations_dir, "feature_heatmap.png")
-        )
-        logger.logger.info("Created feature activation heatmap")
+        try:
+            logger.logger.info("Creating feature activation heatmap")
+            inception_3c_vis.create_feature_activation_heatmap(
+                activations=inception_3c_act,
+                feature_idx=10,
+                save_path=os.path.join(visualizations_dir, "feature_heatmap.png")
+            )
+            logger.logger.info("Created feature activation heatmap")
+        except Exception as e:
+            logger.logger.error(f"Error creating feature activation heatmap: {str(e)}")
+            import traceback
+            logger.logger.error(traceback.format_exc())
         
         # 5.3: 3D feature visualization
-        inception_3c_vis.visualize_3d_feature_activation(
-            activations=inception_3c_act,
-            feature_idx=10,
-            save_path=os.path.join(visualizations_dir, "feature_3d.png")
-        )
-        logger.logger.info("Created 3D feature visualization")
+        try:
+            logger.logger.info("Creating 3D feature visualization")
+            inception_3c_vis.visualize_3d_feature_activation(
+                activations=inception_3c_act,
+                feature_idx=10,
+                save_path=os.path.join(visualizations_dir, "feature_3d.png")
+            )
+            logger.logger.info("Created 3D feature visualization")
+        except Exception as e:
+            logger.logger.error(f"Error creating 3D feature visualization: {str(e)}")
+            import traceback
+            logger.logger.error(traceback.format_exc())
         
         # 5.4: Feature evolution animation
-        inception_3c_vis.create_feature_evolution_animation(
-            activations=inception_3c_act,
-            feature_idx=10,
-            save_path=os.path.join(visualizations_dir, "feature_evolution.gif")
-        )
-        logger.logger.info("Created feature evolution animation")
+        try:
+            logger.logger.info("Creating feature evolution animation")
+            inception_3c_vis.create_feature_evolution_animation(
+                activations=inception_3c_act,
+                feature_idx=10,
+                save_path=os.path.join(visualizations_dir, "feature_evolution.gif")
+            )
+            logger.logger.info("Created feature evolution animation")
+        except Exception as e:
+            logger.logger.error(f"Error creating feature evolution animation: {str(e)}")
+            import traceback
+            logger.logger.error(traceback.format_exc())
         
         # 5.5: Comparative temporal view
-        inception_3c_vis.create_comparative_temporal_view(
-            activations=inception_3c_act,
-            feature_indices=[0, 10, 20],
-            flow_sequence=preprocessed,
-            save_path=os.path.join(visualizations_dir, "comparative_view.png")
-        )
-        logger.logger.info("Created comparative temporal view")
+        try:
+            logger.logger.info("Creating comparative temporal view")
+            inception_3c_vis.create_comparative_temporal_view(
+                activations=inception_3c_act,
+                feature_indices=[0, 10, 20],
+                flow_sequence=preprocessed,
+                save_path=os.path.join(visualizations_dir, "comparative_view.png")
+            )
+            logger.logger.info("Created comparative temporal view")
+        except Exception as e:
+            logger.logger.error(f"Error creating comparative temporal view: {str(e)}")
+            import traceback
+            logger.logger.error(traceback.format_exc())
+            
+        # Count the number of successful visualizations
+        visualization_files = os.listdir(visualizations_dir)
+        logger.logger.info(f"Generated {len(visualization_files)} visualization files")
         
-        return True
+        if len(visualization_files) > 0:
+            return True
+        else:
+            logger.logger.warning("No visualization files were generated")
+            return False
         
     except Exception as e:
         logger.logger.error(f"Error in temporal visualization test: {str(e)}")
@@ -220,6 +272,10 @@ def test_model_serialization(output_dir):
         versions = ModelSerializer.list_available_versions(models_dir, "dynamic_feature_extractor")
         logger.logger.info(f"Available versions: {versions}")
         
+        if not versions or not versions.get("dynamic_feature_extractor"):
+            logger.logger.error("No model versions found")
+            return False
+            
         # Load the latest model
         latest_model, latest_metadata, latest_version = ModelSerializer.load_latest_model(
             base_dir=models_dir,
@@ -228,7 +284,7 @@ def test_model_serialization(output_dir):
         
         if latest_model is not None:
             logger.logger.info(f"Loaded latest model version: {latest_version}")
-            logger.logger.info(f"Model metadata: {latest_metadata.get('description')}")
+            logger.logger.info(f"Model metadata: {latest_metadata.get('description', 'No description')}")
         else:
             logger.logger.error("Failed to load latest model")
             return False
@@ -236,6 +292,7 @@ def test_model_serialization(output_dir):
         # Step 5: Export model for inference
         logger.logger.info("Exporting model for inference")
         inference_dir = os.path.join(models_dir, "inference")
+        os.makedirs(inference_dir, exist_ok=True)
         export_path = ModelSerializer.export_for_inference(extractor.model, inference_dir)
         
         if export_path:
@@ -252,65 +309,48 @@ def test_model_serialization(output_dir):
         logger.logger.error(traceback.format_exc())
         return False
 
-
 def main():
-    """
-    Main function to run tests for temporal visualization and model serialization.
-    """
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(
-        description="Test temporal visualization and model serialization"
-    )
-    parser.add_argument(
-        "--video", 
-        type=str, 
-        required=True,
-        help="Path to input video file"
-    )
-    parser.add_argument(
-        "--output_dir", 
-        type=str, 
-        default="results/dynamic_feature_extractor/temporal_and_serialization_test",
-        help="Directory to save test results"
-    )
-    parser.add_argument(
-        "--num_frames", 
-        type=int, 
-        default=16,
-        help="Number of frames to extract from the video"
-    )
-    parser.add_argument(
-        "--skip_visualization", 
-        action="store_true",
-        help="Skip the temporal visualization test"
-    )
-    parser.add_argument(
-        "--skip_serialization", 
-        action="store_true",
-        help="Skip the model serialization test"
-    )
+    """Main function for running the tests."""
+    parser = argparse.ArgumentParser(description="Test temporal visualization and model serialization")
+    parser.add_argument("--video", required=True, help="Path to input video file")
+    parser.add_argument("--output_dir", default="results/dynamic_feature_extractor/temporal_and_serialization_test", 
+                        help="Directory to save test results")
+    parser.add_argument("--num_frames", type=int, default=16, 
+                        help="Number of frames to extract from the video")
+    parser.add_argument("--skip_visualization", action="store_true", 
+                        help="Skip the temporal visualization test")
+    parser.add_argument("--skip_serialization", action="store_true", 
+                        help="Skip the model serialization test")
     
     args = parser.parse_args()
     
-    # Run the tests
+    # Create the output directory
+    os.makedirs(args.output_dir, exist_ok=True)
+    
+    vis_success = True
+    serialization_success = True
+    
+    # Run the temporal visualization test
     if not args.skip_visualization:
-        print("Running temporal visualization test...")
         vis_success = test_temporal_visualization(
             video_path=args.video,
             output_dir=args.output_dir,
             num_frames=args.num_frames
         )
-        print(f"Temporal visualization test {'successful' if vis_success else 'failed'}")
+        print("Temporal visualization test", "succeeded" if vis_success else "failed")
     
+    # Run the model serialization test
     if not args.skip_serialization:
-        print("Running model serialization test...")
-        serial_success = test_model_serialization(
+        serialization_success = test_model_serialization(
             output_dir=args.output_dir
         )
-        print(f"Model serialization test {'successful' if serial_success else 'failed'}")
+        print("Model serialization test", "succeeded" if serialization_success else "failed")
     
+    # Print overall status
     print(f"All test results saved to {args.output_dir}")
-
-
+    
+    if not vis_success or not serialization_success:
+        sys.exit(1)
+    
 if __name__ == "__main__":
     main()

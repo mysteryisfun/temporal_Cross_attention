@@ -219,22 +219,70 @@ class DynamicFeatureExtractor:
         Preprocess a single optical flow sequence for feature extraction.
         
         Args:
-            flow_sequence (np.ndarray): Optical flow sequence with shape 
-                                       [frames, height, width, channels].
+            flow_sequence (np.ndarray or list): Optical flow sequence with shape 
+                                               [frames, height, width, channels].
         
         Returns:
             np.ndarray: Preprocessed flow sequence with shape [1, frames, height, width, channels].
         """
-        # Standardize the flow values
-        flow_sequence = self._standardize_flow(flow_sequence)
-        # Add batch dimension if not present
-        if len(flow_sequence.shape) == 4:
-            flow_sequence = np.expand_dims(flow_sequence, 0)
-        return flow_sequence
+        # Ensure the input is a NumPy array
+        if not isinstance(flow_sequence, np.ndarray):
+            flow_sequence = np.array(flow_sequence)
+            
+        # Get required shape from config
+        required_shape = self.config.get('input_shape')
+        target_frames, target_height, target_width, _ = required_shape
         
+        # Check if resizing is needed
+        if (flow_sequence.shape[0] != target_frames or 
+            flow_sequence.shape[1] != target_height or 
+            flow_sequence.shape[2] != target_width):
+            
+            self.logger.logger.info(f"Resizing flow sequence from {flow_sequence.shape} to {required_shape}")
+            
+            # Handle frame count mismatch
+            if flow_sequence.shape[0] < target_frames:
+                # Pad with zeros if fewer frames
+                padding = np.zeros((target_frames - flow_sequence.shape[0], 
+                                   flow_sequence.shape[1], 
+                                   flow_sequence.shape[2], 
+                                   flow_sequence.shape[3]))
+                flow_sequence = np.concatenate([flow_sequence, padding], axis=0)
+            elif flow_sequence.shape[0] > target_frames:
+                # Take a subset of frames if more frames
+                # Use equal spacing to sample frames across the sequence
+                indices = np.linspace(0, flow_sequence.shape[0] - 1, target_frames, dtype=int)
+                flow_sequence = flow_sequence[indices]
+            
+            # Handle spatial dimensions mismatch
+            if (flow_sequence.shape[1] != target_height or 
+                flow_sequence.shape[2] != target_width):
+                
+                # Resize each frame individually
+                resized_sequence = np.zeros((flow_sequence.shape[0], target_height, target_width, flow_sequence.shape[3]))
+                for i in range(flow_sequence.shape[0]):
+                    for c in range(flow_sequence.shape[3]):
+                        # Use OpenCV for resizing
+                        import cv2
+                        resized_sequence[i, :, :, c] = cv2.resize(
+                            flow_sequence[i, :, :, c], 
+                            (target_width, target_height), 
+                            interpolation=cv2.INTER_LINEAR
+                        )
+                flow_sequence = resized_sequence
+        
+        # Standardize flow values
+        flow_sequence = self._standardize_flow(flow_sequence)
+        
+        # Add batch dimension if needed
+        if len(flow_sequence.shape) == 4:  # [frames, height, width, channels]
+            flow_sequence = np.expand_dims(flow_sequence, axis=0)  # [1, frames, height, width, channels]
+            
+        return flow_sequence
+    
     def _standardize_flow(self, flow_sequence):
         """
-        Standardize optical flow values to a consistent range.
+        Standardize optical flow values to a suitable range for the neural network.
         
         Args:
             flow_sequence (np.ndarray): Optical flow sequence.
@@ -242,82 +290,34 @@ class DynamicFeatureExtractor:
         Returns:
             np.ndarray: Standardized flow sequence.
         """
-        # Optical flow values are typically in the range [-20, 20]
-        # We scale them to [-1, 1] for better conditioning
-        return np.clip(flow_sequence / 20.0, -1.0, 1.0)
+        # Clip extreme values (typically optical flow can have outliers)
+        flow_sequence = np.clip(flow_sequence, -20, 20)
+        
+        # Scale to [-1, 1] range
+        flow_sequence = flow_sequence / 20.0
+        
+        return flow_sequence
     
     def save_model(self, filepath):
         """
-        Save the model to disk.
+        Save the feature extraction model to a file.
         
         Args:
             filepath (str): Path to save the model.
-            
-        Returns:
-            str: Path to the saved model directory.
         """
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
         self.model.save(filepath)
         self.logger.logger.info(f"Model saved to {filepath}")
-        return filepath
-    
-    def save_model_with_serializer(self, base_dir, metadata=None, include_optimizer=True, save_format='tf'):
-        """
-        Save the model using the ModelSerializer class.
-        
-        Args:
-            base_dir (str): Base directory where models are stored.
-            metadata (dict): Additional metadata to save with the model.
-            include_optimizer (bool): Whether to include optimizer state.
-            save_format (str): Format to save the model ('tf' or 'h5').
-            
-        Returns:
-            str: Path to the saved model directory.
-        """
-        from models.dynamic_feature_extractor.serialization import ModelSerializer
-        
-        # Create a serializer instance
-        serializer = ModelSerializer(model=self.model)
-          # Add model parameters to metadata
-        model_metadata = {
-            "input_shape": self.config.get('input_shape'),
-            "model_type": self.config.get('model_type'),
-            "dropout_rate": self.config.get('dropout_rate')
-        }
-        
-        # Combine with user-provided metadata
-        if metadata:
-            model_metadata.update(metadata)
-        
-        # Save the model with the serializer
-        save_path = serializer.save_model(
-            base_dir=base_dir,
-            include_optimizer=include_optimizer,
-            save_format=save_format,
-            metadata=model_metadata
-        )
-        
-        if save_path:
-            self.logger.logger.info(f"Model saved with serializer to {save_path}")
-        else:
-            self.logger.logger.error("Failed to save model with serializer")
-        
-        return save_path
     
     def load_model(self, filepath):
         """
-        Load the model from disk.
+        Load the feature extraction model from a file.
         
         Args:
-            filepath (str): Path to load the model from.
+            filepath (str): Path to the saved model.
             
         Returns:
-            bool: True if the model was loaded successfully, False otherwise.
+            bool: Whether the model was loaded successfully.
         """
-        if not os.path.exists(filepath):
-            self.logger.logger.warning(f"Model file not found: {filepath}")
-            return False
-            
         try:
             self.model = tf.keras.models.load_model(filepath)
             self.logger.logger.info(f"Model loaded from {filepath}")
@@ -328,31 +328,72 @@ class DynamicFeatureExtractor:
     
     def load_pretrained_weights(self, weights_path=None):
         """
-        Load pretrained I3D weights.
+        Load pretrained weights into the model.
         
         Args:
-            weights_path (str): Path to the pretrained weights.
-                                If None, attempts to download from a predefined URL.
-                                
+            weights_path (str): Path to the weights file.
+            
         Returns:
-            bool: True if weights were loaded successfully, False otherwise.
+            bool: Whether the weights were loaded successfully.
         """
-        # If weights_path is provided and exists, load the weights
         if weights_path and os.path.exists(weights_path):
             try:
                 self.model.load_weights(weights_path)
-                self.logger.logger.info(f"Loaded pretrained weights from {weights_path}")
+                self.logger.logger.info(f"Pretrained weights loaded from {weights_path}")
                 return True
             except Exception as e:
-                self.logger.logger.error(f"Error loading weights from {weights_path}: {str(e)}")
+                self.logger.logger.error(f"Error loading pretrained weights: {str(e)}")
                 return False
+        else:
+            self.logger.logger.warning("No pretrained weights path provided or file not found")
+            return False
+            
+    def save_model_with_serializer(self, base_dir, metadata=None, include_optimizer=True, 
+                               save_format='tf', config=None, save_weights_only=False):
+        """
+        Save the model using the ModelSerializer for versioning and metadata.
         
-        # Otherwise, attempt to download standard pretrained weights
-        # This is a simplified version - in a real implementation, you would 
-        # download from TF model garden or equivalent
-        self.logger.logger.warning("Pretrained weights path not provided or not found.")
-        self.logger.logger.info("Training from scratch. For best results, provide pretrained weights.")
-        return False
+        Args:
+            base_dir (str): Base directory for saving models.
+            metadata (dict): Additional metadata to save with the model.
+            include_optimizer (bool): Whether to include optimizer state.
+            save_format (str): Format to save in ('tf' or 'h5').
+            config (dict): Optional configuration to save.
+            save_weights_only (bool): If True, only save model weights.
+            
+        Returns:
+            str: Path to the saved model or None if saving failed.
+        """
+        try:
+            # If no config is provided, use the current model config
+            if config is None:
+                config = self.config
+                
+            # Create a serializer instance
+            serializer = ModelSerializer(model=self.model, model_name="dynamic_feature_extractor")
+            
+            # Save the model
+            saved_path = serializer.save_model(
+                base_dir=base_dir,
+                include_optimizer=include_optimizer,
+                save_format=save_format,
+                config=config,
+                metadata=metadata,
+                save_weights_only=save_weights_only
+            )
+            
+            if saved_path:
+                self.logger.logger.info(f"Model saved with serializer to {saved_path}")
+            else:
+                self.logger.logger.error("Failed to save model with serializer")
+                
+            return saved_path
+            
+        except Exception as e:
+            self.logger.logger.error(f"Error saving model with serializer: {str(e)}")
+            import traceback
+            self.logger.logger.error(traceback.format_exc())
+            return None
 
 
 if __name__ == "__main__":

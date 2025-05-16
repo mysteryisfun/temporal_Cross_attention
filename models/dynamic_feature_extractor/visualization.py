@@ -234,160 +234,6 @@ class FeatureVisualization:
         
         return rgb
     
-    def visualize_feature_importance(self, flow_sequence, model, layer_name=None, top_k=3, save_path=None):
-        """
-        Visualize the importance of different optical flow frames for the model's decision.
-        
-        Args:
-            flow_sequence (numpy.ndarray): Optical flow sequence with shape [1, frames, height, width, channels].
-            model (tf.keras.Model): The model to analyze.
-            layer_name (str): Name of the layer to visualize. If None, uses the final layer.
-            top_k (int): Number of most important frames to highlight.
-            save_path (str): Path to save the visualization.
-        """
-        # Get original prediction
-        original_prediction = model.predict(flow_sequence)
-        
-        # Get flow sequence without batch dimension
-        flow = flow_sequence[0]
-        num_frames = flow.shape[0]
-        
-        # Store feature importance for each frame
-        importance = np.zeros(num_frames)
-        
-        # Create a baseline (zeros) sequence
-        baseline = np.zeros_like(flow_sequence)
-        
-        # For each frame, calculate its importance
-        for i in range(num_frames):
-            # Create a sequence with only the current frame
-            test_sequence = baseline.copy()
-            test_sequence[0, i] = flow[i]
-            
-            # Get prediction for this sequence
-            frame_prediction = model.predict(test_sequence)
-            
-            # Use L2 distance between original and frame prediction as importance
-            importance[i] = np.linalg.norm(original_prediction - frame_prediction)
-        
-        # Normalize importance
-        importance = importance / np.max(importance)
-        
-        # Get indices of top_k most important frames
-        top_indices = np.argsort(importance)[::-1][:top_k]
-        
-        # Create visualization
-        fig, axes = plt.subplots(2, num_frames, figsize=(4 * num_frames, 8))
-        
-        for i in range(num_frames):
-            # Visualize optical flow
-            flow_frame = flow[i]
-            flow_rgb = self._flow_to_rgb(flow_frame)
-            axes[0, i].imshow(flow_rgb)
-            axes[0, i].set_title(f"Flow {i}")
-            axes[0, i].axis('off')
-            
-            # Visualize importance
-            bar_color = 'red' if i in top_indices else 'blue'
-            axes[1, i].bar(0, importance[i], color=bar_color, width=0.5)
-            axes[1, i].set_title(f"Importance: {importance[i]:.2f}")
-            axes[1, i].set_ylim(0, 1)
-            axes[1, i].set_xticks([])
-        
-        plt.suptitle("Frame Importance for Prediction")
-        plt.tight_layout()
-        
-        if save_path:
-            os.makedirs(os.path.dirname(save_path), exist_ok=True)
-            plt.savefig(save_path)
-            plt.close()
-        else:
-            plt.show()
-        
-        return importance, top_indices
-
-
-def visualize_optical_flow_sequence(flow_sequence, save_path=None):
-    """
-    Visualize a sequence of optical flow frames.
-    
-    Args:
-        flow_sequence (numpy.ndarray): Optical flow sequence with shape [frames, height, width, 2].
-        save_path (str): Path to save the visualization.
-        
-    Returns:
-        numpy.ndarray: Visualization image.
-    """
-    # Make sure flow_sequence doesn't have batch dimension
-    if len(flow_sequence.shape) == 5:
-        flow_sequence = flow_sequence[0]
-    
-    num_frames = flow_sequence.shape[0]
-    
-    # Create a figure with subplots for each frame
-    fig, axes = plt.subplots(1, num_frames, figsize=(4 * num_frames, 4))
-    
-    if num_frames == 1:
-        axes = [axes]  # Make iterable for single frame case
-    
-    for i in range(num_frames):
-        # Get flow for this frame
-        flow = flow_sequence[i]
-        
-        # Convert flow to RGB
-        flow_rgb = _flow_to_rgb(flow)
-        
-        # Display
-        axes[i].imshow(flow_rgb)
-        axes[i].set_title(f"Frame {i}")
-        axes[i].axis('off')
-    
-    plt.suptitle("Optical Flow Sequence")
-    plt.tight_layout()
-    
-    if save_path:
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-        plt.savefig(save_path)
-        plt.close()
-    else:
-        plt.show()
-    
-    return flow_rgb  # Return the last frame visualization
-
-
-def _flow_to_rgb(flow):
-    """
-    Convert optical flow to RGB visualization.
-    
-    Args:
-        flow (numpy.ndarray): Optical flow with shape [height, width, 2].
-        
-    Returns:
-        numpy.ndarray: RGB visualization of the flow.
-    """
-    # Extract u and v components
-    u, v = flow[:, :, 0], flow[:, :, 1]
-    
-    # Calculate magnitude and angle
-    magnitude = np.sqrt(u**2 + v**2)
-    angle = np.arctan2(v, u) + np.pi
-    
-    # Normalize magnitude for visualization
-    max_flow = np.max(magnitude)
-    if max_flow > 0:
-        magnitude = magnitude / max_flow
-    
-    # Convert to HSV
-    hsv = np.zeros((flow.shape[0], flow.shape[1], 3), dtype=np.uint8)
-    hsv[..., 0] = angle * 180 / (2 * np.pi)  # Hue based on flow direction
-    hsv[..., 1] = 255                        # Full saturation
-    hsv[..., 2] = np.clip(magnitude * 255, 0, 255).astype(np.uint8)  # Value based on flow magnitude
-    
-    # Convert HSV to RGB
-    rgb = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
-    
-    return rgb
-
     def visualize_temporal_feature_evolution(self, activations, feature_indices=None, save_path=None):
         """
         Visualize how selected features evolve over time across all frames.
@@ -434,54 +280,7 @@ def _flow_to_rgb(flow):
             plt.close()
         else:
             plt.show()
-
-    def create_feature_activation_heatmap(self, activations, feature_idx=0, save_path=None):
-        """
-        Create a heatmap visualization of a feature's activation over time and space.
-
-        Args:
-            activations (numpy.ndarray): Layer activations with shape [1, frames, height, width, channels].
-            feature_idx (int): Index of the feature to visualize.
-            save_path (str): Path to save the visualization.
-        """
-        # Ensure we have temporal activations
-        if len(activations.shape) != 5:
-            raise ValueError("Activations must have shape [1, frames, height, width, channels]")
-
-        # Extract the feature activations for all frames
-        feature_activations = activations[0, :, :, :, feature_idx]
-
-        # Create heatmap of average activation across all frames
-        plt.figure(figsize=(14, 8))
-
-        # Top plot: temporal evolution
-        plt.subplot(2, 1, 1)
-        mean_per_frame = np.mean(feature_activations, axis=(1, 2))
-        plt.plot(range(len(mean_per_frame)), mean_per_frame, marker='o', linestyle='-', linewidth=2)
-        plt.title(f"Temporal Evolution of Feature {feature_idx}")
-        plt.xlabel("Frame")
-        plt.ylabel("Mean Activation")
-        plt.grid(alpha=0.3)
-
-        # Bottom plot: spatial heatmap (averaged over time)
-        plt.subplot(2, 1, 2)
-        mean_spatial = np.mean(feature_activations, axis=0)
-        plt.imshow(mean_spatial, cmap='viridis')
-        plt.colorbar(label="Mean Activation")
-        plt.title(f"Spatial Distribution of Feature {feature_idx}")
-        plt.xlabel("Width")
-        plt.ylabel("Height")
-
-        plt.tight_layout()
-
-        if save_path:
-            os.makedirs(os.path.dirname(save_path), exist_ok=True)
-            plt.savefig(save_path)
-            plt.close()
-        else:
-            plt.show()
-        plt.show()
-
+    
     def visualize_3d_feature_activation(self, activations, feature_idx=0, save_path=None):
         """
         Create a 3D visualization of a feature's activation over time and space.
@@ -634,15 +433,17 @@ def _flow_to_rgb(flow):
                 axes[row_idx, frame_idx].axis('off')
             row_idx += 1
 
-        # Plot each feature's activation over time
+        # Plot feature activations
         for i, feature_idx in enumerate(feature_indices):
             for frame_idx in range(num_frames):
-                feature_map = activations[0, frame_idx, :, :, feature_idx]
+                # Get feature activation for this frame
+                feature_act = activations[0, frame_idx, :, :, feature_idx]
 
-                # Normalize feature map
-                feature_map = (feature_map - np.min(feature_map)) / (np.max(feature_map) - np.min(feature_map) + 1e-8)
+                # Normalize for visualization
+                norm_act = (feature_act - np.min(feature_act)) / (np.max(feature_act) - np.min(feature_act) + 1e-8)
 
-                axes[row_idx + i, frame_idx].imshow(feature_map, cmap='viridis')
+                # Plot
+                axes[row_idx + i, frame_idx].imshow(norm_act, cmap='viridis')
                 axes[row_idx + i, frame_idx].set_title(f"F{feature_idx}, T{frame_idx}")
                 axes[row_idx + i, frame_idx].axis('off')
 
@@ -654,3 +455,80 @@ def _flow_to_rgb(flow):
             plt.close()
         else:
             plt.show()
+
+    def create_feature_activation_heatmap(self, activations, feature_idx=0, save_path=None):
+        """
+        Create a heatmap visualization of a feature's activation over time and space.
+        
+        Args:
+            activations (numpy.ndarray): Layer activations with shape [1, frames, height, width, channels].
+            feature_idx (int): Index of the feature to visualize.
+            save_path (str): Path to save the visualization.
+        """
+        # Ensure we have temporal activations
+        if len(activations.shape) != 5:
+            raise ValueError("Activations must have shape [1, frames, height, width, channels]")
+            
+        # Extract the feature activations
+        feature_act = activations[0, :, :, :, feature_idx]
+        
+        # Create figure
+        fig, ax = plt.subplots(figsize=(10, 8))
+        
+        # Create temporal average of activations
+        avg_activation = np.mean(feature_act, axis=0)
+        
+        # Normalize for visualization
+        norm_act = (avg_activation - np.min(avg_activation)) / (np.max(avg_activation) - np.min(avg_activation) + 1e-8)
+        
+        # Create heatmap
+        im = ax.imshow(norm_act, cmap='hot', interpolation='nearest')
+        ax.set_title(f'Temporal Average Activation Heatmap for Feature {feature_idx}')
+        
+        # Add colorbar
+        fig.colorbar(im, ax=ax, label='Normalized Activation')
+        
+        if save_path:
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            plt.savefig(save_path)
+            plt.close()
+        else:
+            plt.show()
+
+def visualize_optical_flow_sequence(flow_sequence, save_path=None):
+    """
+    Visualize an optical flow sequence.
+    
+    Args:
+        flow_sequence (numpy.ndarray): Optical flow sequence with shape [frames, height, width, channels].
+        save_path (str): Path to save the visualization.
+    """
+    # Create a FeatureVisualization instance for using its _flow_to_rgb method
+    vis = FeatureVisualization()
+    
+    # Determine number of frames
+    num_frames = flow_sequence.shape[0]
+    
+    # Create figure
+    fig, axes = plt.subplots(1, num_frames, figsize=(4 * num_frames, 4))
+    
+    if num_frames == 1:
+        axes = [axes]  # Make iterable for single frame case
+    
+    # Visualize each frame
+    for i in range(num_frames):
+        flow_frame = flow_sequence[i]
+        flow_rgb = vis._flow_to_rgb(flow_frame)
+        axes[i].imshow(flow_rgb)
+        axes[i].set_title(f"Flow {i}")
+        axes[i].axis('off')
+    
+    plt.suptitle("Optical Flow Sequence")
+    plt.tight_layout()
+    
+    if save_path:
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        plt.savefig(save_path)
+        plt.close()
+    else:
+        plt.show()
