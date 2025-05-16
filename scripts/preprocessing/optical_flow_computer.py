@@ -234,6 +234,36 @@ class OpticalFlowComputer:
             saved_paths['raw'] = npy_path
         
         return saved_paths
+    
+    def extract_frames_from_video(self, video_path, num_frames=16):
+        """
+        Extract a fixed number of evenly spaced frames from a video file.
+        
+        Args:
+            video_path (str): Path to the video file.
+            num_frames (int): Number of frames to extract.
+        
+        Returns:
+            list: List of frames as numpy arrays.
+        """
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
+            raise IOError(f"Cannot open video file: {video_path}")
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        if total_frames < num_frames:
+            raise ValueError(f"Video has only {total_frames} frames, but {num_frames} requested.")
+        frame_indices = np.linspace(0, total_frames - 1, num_frames, dtype=int)
+        frames = []
+        for idx in range(total_frames):
+            ret, frame = cap.read()
+            if not ret:
+                break
+            if idx in frame_indices:
+                frames.append(frame)
+        cap.release()
+        if len(frames) != num_frames:
+            raise ValueError(f"Extracted {len(frames)} frames, expected {num_frames}.")
+        return frames
 
 
 def process_video_faces(faces_dir, output_dir, method='farneback', params=None, 

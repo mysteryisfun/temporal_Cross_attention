@@ -1,0 +1,28 @@
+{
+  "num_videos": 5,
+  "feature_dimension": 65536,
+  "video_names": [
+    "video_1_-AmMDnVl4s8",
+    "video_2_1DCnIad1Y0w",
+    "video_3_2kqPuht5jTg",
+    "video_4_4CSV8L7aVik",
+    "video_5_50gokPvvMs8"
+  ],
+  "visualizations": {
+    "pca_path": "results/dynamic_feature_extractor/batch_analysis\\visualizations\\pca_visualization.png",
+    "tsne_path": "results/dynamic_feature_extractor/batch_analysis\\visualizations\\tsne_visualization.png",
+    "similarity_path": "results/dynamic_feature_extractor/batch_analysis\\visualizations\\similarity_matrix.png"
+  },
+  "statistics": {
+    "num_features": 65536,
+    "mean_feature_magnitude": 1.68026864528656,
+    "min_feature_value": 0.0,
+    "max_feature_value": 0.05501933395862579,
+    "mean_feature_sparsity": 0.22783203125,
+    "stats_path": "results/dynamic_feature_extractor/batch_analysis\\statistics\\feature_statistics.png",
+    "heatmap_path": "results/dynamic_feature_extractor/batch_analysis\\statistics\\feature_heatmap.png"
+  },
+  "mean_similarity": 0.2633114528656006,
+  "min_similarity": 3.2186508178710938e-06,
+  "max_similarity": 0.37308236956596375
+}

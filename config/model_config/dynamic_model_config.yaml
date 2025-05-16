@@ -1,0 +1,37 @@
+# Dynamic Feature Extractor Configuration File
+
+# Model type - currently supported: 'i3d'
+model_type: 'i3d'
+
+# Input shape [frames, height, width, channels]
+# For optical flow, channels=2 (u, v components)
+input_shape: [16, 224, 224, 2]
+
+# Whether to use pretrained weights (not implemented yet)
+pretrained: false
+
+# Layers to freeze during training (not implemented yet)
+freeze_layers: []
+
+# Output feature dimensionality
+output_features: 1024
+
+# Dropout rate
+dropout_rate: 0.5
+
+# Training parameters (for future implementation)
+training:
+  batch_size: 16
+  learning_rate: 0.0001
+  epochs: 100
+  optimizer: 'adam'
+  early_stopping_patience: 10
+  validation_split: 0.2
+
+# Preprocessing parameters
+preprocessing:
+  normalize_flow: true
+  flow_scale_factor: 20.0  # Divide by this value to normalize flow to [-1, 1] range
+  random_flip: false
+  random_crop: false
+  center_crop: true

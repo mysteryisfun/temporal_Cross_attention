@@ -11,3 +11,4 @@ Coding standards, domain knowledge, and preferences that AI should follow.
 **maintain the indentation and formatting of the code correctly to avoid errors**
 **always use PowerShell syntax for running the scripts**
 **always look for virtual environment and use it for running the scripts if present**
+**always write the instuctions of implemented phase in doc folder so that can be refered later while integration and other things, write clear instuctions so that later understood easily for integration of that module**
