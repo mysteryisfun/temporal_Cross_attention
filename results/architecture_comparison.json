@@ -1,0 +1,10 @@
+{
+  "StaticModel": {
+    "params": 66309,
+    "summary": "Model: \"sequential\"\n_________________________________________________________________\n Layer (type)                Output Shape              Param #   \n=================================================================\n dense (Dense)               (None, 128)               65664     \n                                                                 \n dense_1 (Dense)             (None, 5)                 645       \n                                                                 \n=================================================================\nTotal params: 66,309\nTrainable params: 66,309\nNon-trainable params: 0\n_________________________________________________________________"
+  },
+  "DynamicModel": {
+    "params": 41477,
+    "summary": "Model: \"sequential_1\"\n_________________________________________________________________\n Layer (type)                Output Shape              Param #   \n=================================================================\n dense_2 (Dense)             (None, 128)               32896     \n                                                                 \n dense_3 (Dense)             (None, 64)                8256      \n                                                                 \n dense_4 (Dense)             (None, 5)                 325       \n                                                                 \n=================================================================\nTotal params: 41,477\nTrainable params: 41,477\nNon-trainable params: 0\n_________________________________________________________________"
+  }
+}
