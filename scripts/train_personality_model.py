@@ -1,10 +1,12 @@
 """
-Training pipeline for Cross-Attention Personality Model (Phase 4.1)
+Training pipeline for Cross-Attention Personality Model (Phase 4.3)
 
 - Loads pre-extracted static and dynamic features and OCEAN labels
 - Implements data loader and batch generator
 - Trains only the cross-attention and output dense layers
 - Includes validation loop
+- Advanced logging and metrics tracking
+- Training time and batch-level performance monitoring
 
 Usage:
     if (Test-Path .\env\Scripts\activate.ps1) {
@@ -12,16 +14,18 @@ Usage:
         python scripts/train_personality_model.py --static_features data/static_features.npy --dynamic_features data/dynamic_features.npy --labels data/labels.npy --val_split 0.2 --batch_size 32 --epochs 50 --output results/personality_model_trained.h5
     }
 
-See docs/phase_3_complete_documentation.md for details.
+See docs/phase_4_training_pipeline.md for details.
 """
 
 import os
 import argparse
 import numpy as np
+import time
 import tensorflow as tf
 from src.models.personality_model import CompletePersonalityModel
 from utils.logger import get_logger
 from utils.metrics import RSquared, r_squared_metric, per_trait_metrics
+from utils.training_callbacks import PerformanceMonitorCallback, TimeTrackingCallback, LearningRateTrackerCallback
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Train Cross-Attention Personality Model")
@@ -116,16 +120,22 @@ def main():
     }
     logger.log_hyperparameters(hyperparams)
     # Training
-    logger.logger.info("Starting training...")
-    # Create outputs directory 
-    os.makedirs(os.path.dirname(args.output), exist_ok=True)
+    logger.logger.info("Starting training...")    # Create output directories
+    output_dir = os.path.dirname(args.output)
+    os.makedirs(output_dir, exist_ok=True)
 
-    # Create a directory for TensorBoard logs
-    tensorboard_dir = os.path.join(os.path.dirname(args.output), 'tensorboard_logs')
-    os.makedirs(tensorboard_dir, exist_ok=True)
+    # Create directories for various logs
+    tensorboard_dir = os.path.join(output_dir, 'tensorboard_logs')
+    batch_metrics_dir = os.path.join(output_dir, 'batch_metrics')
+    time_tracking_dir = os.path.join(output_dir, 'time_tracking')
+    lr_tracking_dir = os.path.join(output_dir, 'lr_tracking')
+    
+    # Create all directories
+    for directory in [tensorboard_dir, batch_metrics_dir, time_tracking_dir, lr_tracking_dir]:
+        os.makedirs(directory, exist_ok=True)
 
     # Set up checkpoints to save weights during training
-    checkpoint_path = os.path.join(os.path.dirname(args.output), 'checkpoint_weights.h5')
+    checkpoint_path = os.path.join(output_dir, 'checkpoint_weights.h5')
 
     # Custom callback for detailed metric logging
     class MetricLoggerCallback(tf.keras.callbacks.Callback):
@@ -145,9 +155,7 @@ def main():
                         trait_metrics[f'{trait_name}_{metric}'] = logs[metric_key]
             
             if trait_metrics:
-                logger.log_metrics(trait_metrics, step=epoch)
-
-    # Set up callbacks list with our custom callback
+                logger.log_metrics(trait_metrics, step=epoch)    # Set up callbacks list with our custom callbacks
     callbacks = [
         # Early stopping to prevent overfitting
         tf.keras.callbacks.EarlyStopping(
@@ -173,18 +181,42 @@ def main():
             write_graph=True,
             update_freq='epoch'
         ),
-        # Our custom metric logger
-        MetricLoggerCallback()
+        # Our legacy custom metric logger
+        MetricLoggerCallback(),
+        # New Phase 4.3 callbacks for advanced monitoring
+        PerformanceMonitorCallback(
+            log_dir=batch_metrics_dir,
+            batch_log_frequency=10,
+            logger=logger
+        ),
+        TimeTrackingCallback(
+            log_dir=time_tracking_dir,
+            batch_log_frequency=20,
+            logger=logger
+        ),
+        LearningRateTrackerCallback(
+            log_dir=lr_tracking_dir,
+            logger=logger
+        )
     ]
+    
+    # Record training start time
+    training_start_time = time.time()
     history = model.fit(
         batch_generator(static_tr, dynamic_tr, y_tr, args.batch_size),
         steps_per_epoch=max(1, static_tr.shape[0] // args.batch_size),
         validation_data=batch_generator(static_val, dynamic_val, y_val, args.batch_size),
         validation_steps=max(1, static_val.shape[0] // args.batch_size),
         epochs=args.epochs,
-        callbacks=callbacks
-    )
+        callbacks=callbacks    )
     logger.logger.info("Training complete. Saving model weights...")
+    
+    # Calculate total training time
+    training_end_time = time.time()
+    total_training_time = training_end_time - training_start_time
+    hours, remainder = divmod(total_training_time, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    logger.logger.info(f"Total training time: {int(hours)}h {int(minutes)}m {int(seconds)}s")
     
     # Log training history
     logger.logger.info("Analyzing training results...")
@@ -210,10 +242,132 @@ def main():
     history_path = os.path.join(os.path.dirname(args.output), 'training_history.npy')
     np.save(history_path, history.history)
     logger.logger.info(f"Training history saved to {history_path}")
-    
-    # Save the model weights in H5 format - this works for all model types
+      # Save the model weights in H5 format - this works for all model types
     model.save_weights(args.output)
     logger.logger.info(f"Model weights saved to {args.output}")
+    
+    # Generate training visualizations
+    logger.logger.info("Generating training visualizations...")
+    try:
+        # Import visualization functions here to avoid circular imports
+        from scripts.visualize_advanced_training import (
+            load_json_file, 
+            create_combined_training_dashboard,
+            plot_learning_rate_changes,
+            plot_training_validation_curves,
+            plot_batch_performance,
+            plot_per_trait_performance,
+            create_correlation_matrix
+        )
+        
+        # Load data from the tracking logs
+        metrics_history = load_json_file(os.path.join(batch_metrics_dir, 'metrics_history.json'))
+        time_logs = load_json_file(os.path.join(time_tracking_dir, 'time_logs.json'))
+        lr_logs = load_json_file(os.path.join(lr_tracking_dir, 'lr_logs.json'))
+        
+        # Create visualization directory
+        viz_dir = os.path.join(output_dir, 'training_visualizations')
+        os.makedirs(viz_dir, exist_ok=True)
+        
+        # Generate comprehensive visualizations
+        logger.logger.info("Creating combined training dashboard...")
+        create_combined_training_dashboard(metrics_history, time_logs, lr_logs, viz_dir)
+        
+        logger.logger.info("Plotting learning rate changes...")
+        plot_learning_rate_changes(lr_logs, viz_dir)
+        
+        logger.logger.info("Plotting training/validation curves...")
+        plot_training_validation_curves(metrics_history, viz_dir)
+        
+        logger.logger.info("Plotting batch performance...")
+        plot_batch_performance(metrics_history, viz_dir)
+        
+        logger.logger.info("Plotting per-trait performance...")
+        plot_per_trait_performance(metrics_history, viz_dir)
+        
+        # Create metrics correlation matrix
+        try:
+            logger.logger.info("Creating metrics correlation matrix...")
+            create_correlation_matrix(metrics_history, viz_dir)
+        except Exception as e:
+            logger.logger.warning(f"Failed to create correlation matrix: {e}")
+            
+        # Run training time analysis
+        logger.logger.info("Analyzing training time performance...")
+        from scripts.analyze_training_time import (
+            analyze_epoch_times,
+            analyze_batch_times,
+            create_training_speedup_recommendations,
+            create_training_time_dashboard
+        )
+        
+        # Create analysis directory
+        analysis_dir = os.path.join(output_dir, 'training_time_analysis')
+        os.makedirs(analysis_dir, exist_ok=True)
+        
+        # Run analysis components
+        try:
+            logger.logger.info("Analyzing epoch times...")
+            analyze_epoch_times(time_logs, analysis_dir)
+            
+            logger.logger.info("Analyzing batch times...")
+            analyze_batch_times(time_logs, metrics_history, analysis_dir)
+            
+            logger.logger.info("Creating training speedup recommendations...")
+            create_training_speedup_recommendations(time_logs, metrics_history, analysis_dir)
+            
+            logger.logger.info("Creating training time dashboard...")
+            create_training_time_dashboard(time_logs, metrics_history, analysis_dir)
+            
+            logger.logger.info(f"Training time analysis saved to {analysis_dir}")
+        except Exception as e:
+            logger.logger.warning(f"Some training time analysis components failed: {e}")
+        
+        # Generate attention visualizations if we have attention weights
+        if hasattr(model, 'extract_attention_weights'):
+            logger.logger.info("Generating attention visualizations...")
+            from scripts.enhanced_attention_visualization import (
+                visualize_multi_head_attention,
+                visualize_attention_comparison,
+                create_attention_heatmap_dashboard
+            )
+            
+            # Create visualization directory
+            attn_dir = os.path.join(output_dir, 'attention_visualizations')
+            os.makedirs(attn_dir, exist_ok=True)
+            
+            # Extract attention weights for a small sample
+            sample_size = min(10, static_val.shape[0])
+            sample_static = static_val[:sample_size]
+            sample_dynamic = dynamic_val[:sample_size]
+            
+            try:
+                # Extract attention weights using the model's method
+                attention_weights = model.extract_attention_weights((sample_static, sample_dynamic))
+                
+                # Create visualizations
+                logger.logger.info("Creating multi-head attention visualization...")
+                for i in range(min(3, sample_size)):
+                    output_path = os.path.join(attn_dir, f'multi_head_attention_sample_{i+1}.png')
+                    visualize_multi_head_attention(attention_weights, i, output_path)
+                
+                logger.logger.info("Creating attention comparison visualization...")
+                visualize_attention_comparison(attention_weights, os.path.join(attn_dir, 'attention_comparison.png'))
+                
+                logger.logger.info("Creating attention dashboard...")
+                create_attention_heatmap_dashboard(attention_weights, os.path.join(attn_dir, 'attention_dashboard.png'))
+                
+                logger.logger.info(f"Attention visualizations saved to {attn_dir}")
+            except Exception as e:
+                logger.logger.warning(f"Failed to generate attention visualizations: {e}")
+        else:
+            logger.logger.info("Skipping attention visualizations (model doesn't support attention weight extraction)")
+        
+        logger.logger.info("All training visualizations and analyses completed successfully.")
+    except Exception as e:
+        logger.logger.warning(f"Failed to generate some visualizations or analyses: {e}")
+    
+    logger.logger.info("Training pipeline completed successfully.")
     logger.close()
 
 if __name__ == "__main__":

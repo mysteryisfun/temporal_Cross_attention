@@ -42,6 +42,7 @@ results/model_checkpoints/
 results/ablation_studies/
 results/visualizations/
 results/dynamic_feature_extractor/batch_test/
+results/test_phase_4.3
 
 # Logs
 logs/
