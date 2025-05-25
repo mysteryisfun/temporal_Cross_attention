@@ -1,0 +1,73 @@
+{
+  "start_time": "2025-05-25 18:03:12",
+  "gpu_available": true,
+  "training_directories": {
+    "training80_03": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "faces_extracted": 6589
+    },
+    "training80_04": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "faces_extracted": 6824
+    },
+    "training80_05": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "faces_extracted": 6919
+    },
+    "training80_06": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "faces_extracted": 6856
+    },
+    "training80_07": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "faces_extracted": 6866
+    },
+    "training80_08": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "faces_extracted": 7017
+    },
+    "training80_09": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "faces_extracted": 6906
+    },
+    "training80_10": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "faces_extracted": 6697
+    },
+    "training80_11": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "faces_extracted": 6947
+    },
+    "training80_12": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "faces_extracted": 6838
+    }
+  },
+  "total_faces": 68459,
+  "total_videos_processed": 800,
+  "failed_videos": [],
+  "skipped_directories": [
+    {
+      "directory": "training80_01",
+      "existing_faces": 6966
+    },
+    {
+      "directory": "training80_02",
+      "existing_faces": 6865
+    }
+  ],
+  "optimization_enabled": true,
+  "end_time": "2025-05-25 19:52:41",
+  "processing_time_seconds": 6569.068294048309,
+  "processing_time_formatted": "01:49:29"
+}

@@ -1,0 +1,100 @@
+{
+  "start_time": "2025-05-25 21:50:26",
+  "training_directories": {
+    "training80_01": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "flows_computed": 6886,
+      "flows_skipped": 0,
+      "new_flows_this_run": 6886
+    },
+    "training80_02": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "flows_computed": 6785,
+      "flows_skipped": 0,
+      "new_flows_this_run": 6785
+    },
+    "training80_03": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "flows_computed": 6509,
+      "flows_skipped": 0,
+      "new_flows_this_run": 6509
+    },
+    "training80_04": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "flows_computed": 6744,
+      "flows_skipped": 0,
+      "new_flows_this_run": 6744
+    },
+    "training80_05": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "flows_computed": 6839,
+      "flows_skipped": 0,
+      "new_flows_this_run": 6839
+    },
+    "training80_06": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "flows_computed": 6776,
+      "flows_skipped": 0,
+      "new_flows_this_run": 6776
+    },
+    "training80_07": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "flows_computed": 6786,
+      "flows_skipped": 0,
+      "new_flows_this_run": 6786
+    },
+    "training80_08": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "flows_computed": 6937,
+      "flows_skipped": 0,
+      "new_flows_this_run": 6937
+    },
+    "training80_09": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "flows_computed": 6826,
+      "flows_skipped": 0,
+      "new_flows_this_run": 6826
+    },
+    "training80_10": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "flows_computed": 6617,
+      "flows_skipped": 0,
+      "new_flows_this_run": 6617
+    },
+    "training80_11": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "flows_computed": 6867,
+      "flows_skipped": 0,
+      "new_flows_this_run": 6867
+    },
+    "training80_12": {
+      "videos_processed": 80,
+      "videos_failed": 0,
+      "flows_computed": 6758,
+      "flows_skipped": 0,
+      "new_flows_this_run": 6758
+    }
+  },
+  "total_flows": 81330,
+  "total_videos_processed": 960,
+  "failed_videos": [],
+  "optimization_stats": {
+    "new_flows": 81330,
+    "skipped_flows": 0,
+    "resume_enabled": true
+  },
+  "end_time": "2025-05-25 22:04:36",
+  "processing_time_seconds": 850.8188784122467,
+  "processing_time_formatted": "00:14:10"
+}
