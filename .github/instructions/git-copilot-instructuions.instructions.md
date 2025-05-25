@@ -35,7 +35,7 @@ applyTo: '**'
 - USE the following pattern for virtual environment activation:
     ```powershell
     # If virtual environment exists
-    if (Test-Path .\venv\Scripts\activate.ps1) {
+    if (Test-Path .\env\Scripts\activate.ps1) {
             .\venv\Scripts\activate.ps1
             # Run command
     }

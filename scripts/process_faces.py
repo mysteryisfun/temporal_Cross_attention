@@ -12,7 +12,14 @@ from pathlib import Path
 # Add the project root to the Python path to allow importing from scripts
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from preprocessing.face_detector import setup_logger, process_frames_directory, visualize_detection_results
-
+import tensorflow as tf
+print(len(tf.config.list_physical_devices('GPU')))
+import cv2
+print(cv2.getBuildInformation())
+gpus = tf.config.list_physical_devices('GPU')
+if gpus:
+    for gpu in gpus:
+        tf.config.experimental.set_memory_growth(gpu, True)
 def main():
     parser = argparse.ArgumentParser(description="Detect and align faces in video frames")
     
@@ -37,6 +44,7 @@ def main():
     # Processing options
     parser.add_argument('--workers', type=int, default=4,
                         help="Number of parallel workers")
+    parser.add_argument('--use-gpu', action='store_true', help="Enable GPU processing for face detection")
     
     # Visualization options
     parser.add_argument('--visualize', action='store_true',

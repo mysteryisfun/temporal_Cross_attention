@@ -147,7 +147,7 @@ def extract_frames(video_path, output_dir, sampling_rate=1, max_frames=None, fra
     return stats
 
 def process_video_directory(video_dir, output_base_dir, sampling_rate=1, max_frames=None, 
-                           frame_size=None, num_workers=4, logger=None):
+                           frame_size=None, num_workers=4, use_gpu=False, logger=None):
     """
     Process all videos in a directory and extract frames.
     
@@ -158,6 +158,7 @@ def process_video_directory(video_dir, output_base_dir, sampling_rate=1, max_fra
         max_frames (int, optional): Maximum number of frames to extract per video.
         frame_size (tuple, optional): Resize frames to this size (width, height).
         num_workers (int): Number of parallel workers.
+        use_gpu (bool): Whether to use GPU for processing.
         logger (logging.Logger, optional): Logger object.
         
     Returns:
@@ -201,7 +202,8 @@ def process_video_directory(video_dir, output_base_dir, sampling_rate=1, max_fra
                 output_dir, 
                 sampling_rate, 
                 max_frames, 
-                frame_size
+                frame_size,
+                use_gpu
             )
             future_to_video[future] = video_file
         

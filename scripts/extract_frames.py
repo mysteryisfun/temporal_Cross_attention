@@ -33,6 +33,7 @@ def main():
     # Processing options
     parser.add_argument('--workers', type=int, default=4, help="Number of parallel workers")
     parser.add_argument('--video-base-dir', type=str, help="Base directory containing video files (required with --annotation-file)")
+    parser.add_argument('--use-gpu', action='store_true', help="Enable GPU processing for frame extraction")
     
     # Logging options
     parser.add_argument('--log-file', type=str, help="Path to log file")
@@ -76,6 +77,7 @@ def main():
             args.max_frames,
             frame_size,
             args.workers,
+            args.use_gpu,
             logger
         )
     else:  # Using annotation file

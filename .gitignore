@@ -31,6 +31,9 @@ data/processed/frames
 data/processed/frames_annotations
 data/faces/
 data/optical_flow/
+data/processed/faces/
+data/processed/optical_flow/
+data/processed/optical_flow_annotations/
 
 data_sample/raw/
 data_sample/processed/processed

@@ -299,7 +299,7 @@ class FaceProcessor:
 def process_frame(frame_path, output_path, confidence_threshold=0.9, min_face_size=80, target_size=(224, 224), return_largest=True):
     """
     Process a single frame to detect and align faces.
-    
+
     Args:
         frame_path (str): Path to the input frame.
         output_path (str): Path to save the processed face.
@@ -307,7 +307,7 @@ def process_frame(frame_path, output_path, confidence_threshold=0.9, min_face_si
         min_face_size (int): Minimum width/height for valid faces.
         target_size (tuple): Size to resize faces to (width, height).
         return_largest (bool): Whether to return only the largest face if multiple are detected.
-        
+
     Returns:
         dict: Processing statistics.
     """
@@ -318,50 +318,50 @@ def process_frame(frame_path, output_path, confidence_threshold=0.9, min_face_si
         'face_count': 0,
         'processing_time': 0
     }
-    
+
     try:
         # Start timing
         start_time = time.time()
-        
+
         # Read image
         image = cv2.imread(frame_path)
         if image is None:
             stats['error'] = "Failed to read image"
             return stats
-        
+
         # Initialize face processor
         processor = FaceProcessor(
             confidence_threshold=confidence_threshold,
             min_face_size=min_face_size,
             target_size=target_size
         )
-        
+
         # Process image
         faces, face_meta = processor.process_image(image, return_largest=return_largest)
-        
+
         # Update stats
         stats['status'] = face_meta['status']
         stats['face_count'] = face_meta.get('count', 0)
-        
+
         # Save processed faces
         if faces is not None:
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
-            
+
             if return_largest:
                 # Save single face
-                cv2.imwrite(output_path, faces)
+                cv2.imwrite(output_path, faces[0])
             else:
-                # Save multiple faces with index
+                # Save all faces
                 for i, face in enumerate(faces):
-                    face_path = output_path.replace('.jpg', f'_{i}.jpg')
+                    face_path = output_path.replace('.jpg', f'_face_{i + 1}.jpg')
                     cv2.imwrite(face_path, face)
-        
-        # Calculate processing time
+
+        # End timing
         stats['processing_time'] = time.time() - start_time
-        
+
     except Exception as e:
         stats['error'] = str(e)
-    
+
     return stats
 
 
@@ -370,7 +370,7 @@ def process_frames_directory(input_dir, output_dir, confidence_threshold=0.9, mi
                            recursive=False, logger=None):
     """
     Process all frames in a directory to detect and align faces.
-    
+
     Args:
         input_dir (str): Directory containing input frames.
         output_dir (str): Directory to save processed faces.
@@ -381,15 +381,15 @@ def process_frames_directory(input_dir, output_dir, confidence_threshold=0.9, mi
         num_workers (int): Number of parallel workers.
         recursive (bool): Whether to process subdirectories recursively.
         logger (logging.Logger, optional): Logger object.
-        
+
     Returns:
         dict: Processing statistics.
     """
     if logger is None:
         logger = logging.getLogger("FaceDetector")
-    
+
     start_time = time.time()
-    
+
     # Get all frame files
     frame_files = []
     if recursive:
@@ -401,19 +401,19 @@ def process_frames_directory(input_dir, output_dir, confidence_threshold=0.9, mi
         for file in os.listdir(input_dir):
             if file.lower().endswith(('.jpg', '.jpeg', '.png')):
                 frame_files.append(os.path.join(input_dir, file))
-    
+
     logger.info(f"Found {len(frame_files)} frame files in {input_dir}")
-    
+
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
-    
+
     # Process frames in parallel
     successful_frames = 0
     failed_frames = 0
     no_face_frames = 0
     total_faces = 0
     processing_results = []
-    
+
     with ProcessPoolExecutor(max_workers=num_workers) as executor:
         # Submit tasks
         future_to_frame = {}
@@ -422,14 +422,14 @@ def process_frames_directory(input_dir, output_dir, confidence_threshold=0.9, mi
             rel_path = os.path.relpath(frame_file, input_dir)
             rel_dir = os.path.dirname(rel_path)
             frame_name = os.path.basename(frame_file)
-            
+
             # Replace extension with .jpg
             frame_name_base = os.path.splitext(frame_name)[0] + '.jpg'
-            
+
             output_subdir = os.path.join(output_dir, rel_dir) if recursive else output_dir
             os.makedirs(output_subdir, exist_ok=True)
             output_path = os.path.join(output_subdir, frame_name_base)
-            
+
             future = executor.submit(
                 process_frame,
                 frame_file,
@@ -440,14 +440,14 @@ def process_frames_directory(input_dir, output_dir, confidence_threshold=0.9, mi
                 return_largest
             )
             future_to_frame[future] = frame_file
-        
+
         # Process results as they complete
         for future in tqdm(as_completed(future_to_frame), total=len(frame_files), desc="Processing faces"):
             frame_file = future_to_frame[future]
             try:
                 result = future.result()
                 processing_results.append(result)
-                
+
                 if result['status'] == 'success':
                     successful_frames += 1
                     total_faces += result['face_count']
@@ -459,36 +459,25 @@ def process_frames_directory(input_dir, output_dir, confidence_threshold=0.9, mi
                     failed_frames += 1
                     logger.warning(f"Failed to process {os.path.basename(frame_file)}: {result.get('error', 'Unknown error')}")
             except Exception as e:
-                failed_frames += 1
                 logger.error(f"Error processing {os.path.basename(frame_file)}: {str(e)}")
-    
+                failed_frames += 1
+
     elapsed_time = time.time() - start_time
-    
-    # Calculate statistics
-    total_frames = len(frame_files)
-    success_rate = successful_frames / total_frames * 100 if total_frames > 0 else 0
-    no_face_rate = no_face_frames / total_frames * 100 if total_frames > 0 else 0
-    failure_rate = failed_frames / total_frames * 100 if total_frames > 0 else 0
-    
-    # Log summary
     logger.info(f"Face detection completed in {elapsed_time:.2f} seconds")
-    logger.info(f"Total frames processed: {total_frames}")
-    logger.info(f"Successfully processed: {successful_frames} ({success_rate:.2f}%)")
-    logger.info(f"No face detected: {no_face_frames} ({no_face_rate:.2f}%)")
-    logger.info(f"Failed to process: {failed_frames} ({failure_rate:.2f}%)")
+    logger.info(f"Total frames processed: {len(frame_files)}")
+    logger.info(f"Successfully processed: {successful_frames} ({successful_frames / len(frame_files) * 100:.2f}%)")
+    logger.info(f"No face detected: {no_face_frames} ({no_face_frames / len(frame_files) * 100:.2f}%)")
+    logger.info(f"Failed to process: {failed_frames} ({failed_frames / len(frame_files) * 100:.2f}%)")
     logger.info(f"Total faces detected: {total_faces}")
-    
+
     return {
-        'total_frames': total_frames,
+        'total_frames': len(frame_files),
         'successful_frames': successful_frames,
-        'no_face_frames': no_face_frames,
         'failed_frames': failed_frames,
+        'no_face_frames': no_face_frames,
         'total_faces': total_faces,
-        'success_rate': success_rate,
-        'no_face_rate': no_face_rate,
-        'failure_rate': failure_rate,
         'processing_time': elapsed_time,
-        'processing_results': processing_results
+        'results': processing_results
     }
 
 
