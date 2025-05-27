@@ -1,0 +1,71 @@
+{
+  "faces_directory_exists": true,
+  "optical_flow_directory_exists": true,
+  "total_face_images": 82290,
+  "total_optical_flow_files": 81330,
+  "training_directories": {
+    "training80_01": {
+      "videos": 80,
+      "faces": 6966
+    },
+    "training80_02": {
+      "videos": 80,
+      "faces": 6865
+    },
+    "training80_03": {
+      "videos": 80,
+      "faces": 6589
+    },
+    "training80_04": {
+      "videos": 80,
+      "faces": 6824
+    },
+    "training80_05": {
+      "videos": 80,
+      "faces": 6919
+    },
+    "training80_06": {
+      "videos": 80,
+      "faces": 6856
+    },
+    "training80_07": {
+      "videos": 80,
+      "faces": 6866
+    },
+    "training80_08": {
+      "videos": 80,
+      "faces": 7017
+    },
+    "training80_09": {
+      "videos": 80,
+      "faces": 6906
+    },
+    "training80_10": {
+      "videos": 80,
+      "faces": 6697
+    },
+    "training80_11": {
+      "videos": 80,
+      "faces": 6947
+    },
+    "training80_12": {
+      "videos": 80,
+      "faces": 6838
+    }
+  },
+  "video_count_per_directory": {
+    "training80_01": 80,
+    "training80_02": 80,
+    "training80_03": 80,
+    "training80_04": 80,
+    "training80_05": 80,
+    "training80_06": 80,
+    "training80_07": 80,
+    "training80_08": 80,
+    "training80_09": 80,
+    "training80_10": 80,
+    "training80_11": 80,
+    "training80_12": 80
+  },
+  "analysis_timestamp": "2025-05-27 20:47:48"
+}

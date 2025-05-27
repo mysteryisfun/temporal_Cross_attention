@@ -1,0 +1,16 @@
+{
+  "start_time": "2025-05-27 20:51:53",
+  "total_images": 82290,
+  "batch_size": 32,
+  "gpu_acceleration": true,
+  "end_time": "2025-05-27 22:06:53",
+  "extraction_time_seconds": 4502.008740186691,
+  "extraction_time_formatted": "01:15:02",
+  "features_shape": [
+    82290,
+    2048
+  ],
+  "features_saved_to": "results\\features\\static_features_large.npy",
+  "average_time_per_image": 0.0547090623427718,
+  "images_per_second": 18.278507383925593
+}

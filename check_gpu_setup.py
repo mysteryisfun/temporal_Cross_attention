@@ -40,25 +40,7 @@ def check_tensorflow_gpu():
         print("❌ TensorFlow not available")
         return False
 
-def check_pytorch_gpu():
-    """Check PyTorch GPU setup"""
-    try:
-        import torch
-        print(f"✅ PyTorch version: {torch.__version__}")
-        
-        if torch.cuda.is_available():
-            print(f"✅ CUDA available: {torch.cuda.is_available()}")
-            print(f"🔍 GPU count: {torch.cuda.device_count()}")
-            for i in range(torch.cuda.device_count()):
-                print(f"   GPU {i}: {torch.cuda.get_device_name(i)}")
-            return True
-        else:
-            print("❌ CUDA not available in PyTorch")
-            return False
-            
-    except ImportError:
-        print("❌ PyTorch not available")
-        return False
+
 
 def check_mtcnn():
     """Check MTCNN availability"""
@@ -139,9 +121,7 @@ def main():
     print("\n📦 TensorFlow GPU Check:")
     tf_gpu = check_tensorflow_gpu()
     
-    # Check PyTorch GPU  
-    print("\n📦 PyTorch GPU Check:")
-    pt_gpu = check_pytorch_gpu()
+    
     
     # Check MTCNN
     print("\n📦 MTCNN Check:")
@@ -159,11 +139,11 @@ def main():
     print("\n" + "=" * 60)
     print("📊 SUMMARY:")
     print(f"   TensorFlow GPU: {'✅ Available' if tf_gpu else '❌ Not Available'}")
-    print(f"   PyTorch GPU: {'✅ Available' if pt_gpu else '❌ Not Available'}")
+    
     print(f"   MTCNN: {'✅ Available' if mtcnn_available else '❌ Not Available'}")
     print(f"   OpenCV: {'✅ Available' if cv_available else '❌ Not Available'}")
     
-    if tf_gpu or pt_gpu:
+    if tf_gpu :
         print("\n🚀 RECOMMENDATION: GPU acceleration available for face extraction!")
         if mtcnn_available:
             print("   MTCNN can use GPU acceleration for faster face detection.")

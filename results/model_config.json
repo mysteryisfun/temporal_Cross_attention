@@ -1,0 +1,11 @@
+{
+  "static_dim": 512,
+  "dynamic_dim": 256,
+  "fusion_dim": 128,
+  "num_heads": 8,
+  "dropout_rate": 0.3,
+  "learning_rate": 0.001,
+  "batch_size": 32,
+  "epochs": 50,
+  "validation_split": 0.2
+}
