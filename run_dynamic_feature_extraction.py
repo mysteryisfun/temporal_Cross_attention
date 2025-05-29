@@ -133,27 +133,19 @@ def load_and_preprocess_flow(flow_path, sequence_length=16, target_size=(224, 22
 def extract_dynamic_features_gpu(optical_flow_paths, sequence_length=16, 
                                   checkpoint_dir=None, resume_from_checkpoint=True):
     """
-    Extract dynamic features using GPU, one file at a time, with pause/resume functionality and optimized preprocessing.
+    Extract dynamic features using GPU, one file at a time, with robust error handling and optimized preprocessing.
+    (Checkpoint saving and resume functionality removed as requested.)
     
     Args:
         optical_flow_paths: List of paths to optical flow files
         sequence_length: Number of flow frames per sequence (16 required by I3D)
-        checkpoint_dir: Directory to save checkpoints for resume functionality
-        resume_from_checkpoint: Whether to resume from existing checkpoint
+        checkpoint_dir: (Unused, kept for API compatibility)
+        resume_from_checkpoint: (Unused, kept for API compatibility)
     
     Returns:
         np.ndarray: Extracted features
     """
-    print(f"🔧 Initializing I3D Dynamic Feature Extractor with Resume Capability (No Batch)...")
-    
-    # Setup checkpoint directory
-    if checkpoint_dir is None:
-        checkpoint_dir = Path("results/features/checkpoints")
-    checkpoint_dir = Path(checkpoint_dir)
-    checkpoint_dir.mkdir(parents=True, exist_ok=True)
-    
-    checkpoint_file = checkpoint_dir / "dynamic_extraction_checkpoint.json"
-    features_checkpoint_file = checkpoint_dir / "dynamic_features_checkpoint.npy"
+    print(f"🔧 Initializing I3D Dynamic Feature Extractor (No Checkpoint)...")
     
     # Initialize extractor with None config path (will use defaults)
     extractor = DynamicFeatureExtractor(config_path=None)
@@ -166,43 +158,13 @@ def extract_dynamic_features_gpu(optical_flow_paths, sequence_length=16,
     
     print(f"✅ I3D model initialized: input_shape={extractor.config['input_shape']}")
     
-    # Check for existing checkpoint
     start_index = 0
     features = []
     failed_count = 0
     
-    if resume_from_checkpoint and checkpoint_file.exists():
-        try:
-            with open(checkpoint_file, 'r') as f:
-                checkpoint_data = json.load(f)
-            
-            start_index = checkpoint_data.get('last_processed_index', 0)
-            failed_count = checkpoint_data.get('failed_count', 0)
-            
-            if features_checkpoint_file.exists():
-                features = np.load(features_checkpoint_file).tolist()
-                # Ensure start_index matches len(features)
-                if len(features) != start_index:
-                    print(f"⚠️ Checkpoint mismatch: start_index={start_index}, features={len(features)}. Using len(features) as start_index.")
-                    start_index = len(features)
-                print(f"🔄 Resuming from checkpoint: processed {start_index}/{len(optical_flow_paths)} files")
-                print(f"   Loaded {len(features)} existing features")
-            else:
-                print(f"🔄 Resuming from index {start_index} (features file not found)")
-                features = []
-                start_index = 0
-        except Exception as e:
-            print(f"⚠️ Error loading checkpoint: {e}")
-            print("   Starting fresh extraction...")
-            start_index = 0
-            features = []
-            failed_count = 0
-    else:
-        print("🚀 Starting fresh dynamic feature extraction...")
-    
+    print("🚀 Starting dynamic feature extraction (no checkpoint)...")
     print(f"🚀 Processing {len(optical_flow_paths)} optical flow files (no batch)...")
     print(f"   Sequence length: {sequence_length}")
-    print(f"   Checkpoint saving: every 100 files")
     
     with tf.device('/GPU:0' if check_and_configure_gpu() else '/CPU:0'):
         for i in tqdm(range(start_index, len(optical_flow_paths)),
@@ -223,33 +185,6 @@ def extract_dynamic_features_gpu(optical_flow_paths, sequence_length=16,
             else:
                 features.append(np.zeros(1024))
                 failed_count += 1
-            # Save checkpoint every 100 files
-            if (i + 1) % 100 == 0:
-                try:
-                    checkpoint_data = {
-                        'last_processed_index': i + 1,
-                        'total_files': len(optical_flow_paths),
-                        'failed_count': failed_count,
-                        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                        'progress_percentage': ((i + 1) / len(optical_flow_paths)) * 100
-                    }
-                    with open(checkpoint_file, 'w') as f:
-                        json.dump(checkpoint_data, f, indent=2)
-                    np.save(features_checkpoint_file, np.array(features))
-                    print(f"💾 Checkpoint saved: {checkpoint_data['progress_percentage']:.1f}% complete "
-                          f"({i + 1}/{len(optical_flow_paths)})")
-                except Exception as e:
-                    print(f"⚠️ Error saving checkpoint: {e}")
-    
-    # Final checkpoint cleanup
-    try:
-        if checkpoint_file.exists():
-            checkpoint_file.unlink()
-        if features_checkpoint_file.exists():
-            features_checkpoint_file.unlink()
-        print("🧹 Checkpoint files cleaned up")
-    except Exception as e:
-        print(f"⚠️ Error cleaning up checkpoints: {e}")
     
     print(f"✅ Dynamic feature extraction completed!")
     print(f"   Processed: {len(optical_flow_paths)} files")
@@ -303,7 +238,7 @@ def main():
         'sequence_length': 16,  # Must be 16 to match I3D model architecture
         'gpu_acceleration': gpu_available,
         'resume_capability': True,
-        'checkpoint_interval': 100
+        'checkpoint_interval': 2000
     }
     
     try:
