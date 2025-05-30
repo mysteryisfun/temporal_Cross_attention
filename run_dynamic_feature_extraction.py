@@ -130,22 +130,18 @@ def load_and_preprocess_flow(flow_path, sequence_length=16, target_size=(224, 22
         print(f"⚠️ Error loading {flow_path}: {e}")
         return None
 
-def extract_dynamic_features_gpu(optical_flow_paths, sequence_length=16, 
-                                  checkpoint_dir=None, resume_from_checkpoint=True):
+def extract_dynamic_features_gpu(optical_flow_paths, sequence_length=16):
     """
     Extract dynamic features using GPU, one file at a time, with robust error handling and optimized preprocessing.
-    (Checkpoint saving and resume functionality removed as requested.)
+    (Runs in one go, no intermediate saving/loading.)
     
     Args:
         optical_flow_paths: List of paths to optical flow files
         sequence_length: Number of flow frames per sequence (16 required by I3D)
-        checkpoint_dir: (Unused, kept for API compatibility)
-        resume_from_checkpoint: (Unused, kept for API compatibility)
-    
     Returns:
         np.ndarray: Extracted features
     """
-    print(f"🔧 Initializing I3D Dynamic Feature Extractor (No Checkpoint)...")
+    print(f"🔧 Initializing I3D Dynamic Feature Extractor (No Checkpoint, No Resume)...")
     
     # Initialize extractor with None config path (will use defaults)
     extractor = DynamicFeatureExtractor(config_path=None)
@@ -158,17 +154,16 @@ def extract_dynamic_features_gpu(optical_flow_paths, sequence_length=16,
     
     print(f"✅ I3D model initialized: input_shape={extractor.config['input_shape']}")
     
-    start_index = 0
     features = []
     failed_count = 0
     
-    print("🚀 Starting dynamic feature extraction (no checkpoint)...")
+    print("🚀 Starting dynamic feature extraction (no checkpoint, no resume)...")
     print(f"🚀 Processing {len(optical_flow_paths)} optical flow files (no batch)...")
     print(f"   Sequence length: {sequence_length}")
     
     with tf.device('/GPU:0' if check_and_configure_gpu() else '/CPU:0'):
-        for i in tqdm(range(start_index, len(optical_flow_paths)),
-                      desc="Dynamic features", initial=start_index, total=len(optical_flow_paths)):
+        for i in tqdm(range(len(optical_flow_paths)),
+                      desc="Dynamic features", total=len(optical_flow_paths)):
             flow_path = optical_flow_paths[i]
             flow_sequence = load_and_preprocess_flow(flow_path, sequence_length)
             if flow_sequence is not None:
@@ -194,23 +189,22 @@ def extract_dynamic_features_gpu(optical_flow_paths, sequence_length=16,
     return np.array(features)
 
 def main():
-    """Main execution function with enhanced GPU utilization and pause/resume (no batch)"""
-    print("🌊 Starting GPU-Accelerated Dynamic Feature Extraction with Resume Capability (No Batch)")
+    """Main execution function with enhanced GPU utilization (no checkpoint, no resume)"""
+    print("🌊 Starting GPU-Accelerated Dynamic Feature Extraction (No Checkpoint, No Resume)")
     print("=" * 70)
     
     # Configure paths
     optical_flow_dir = Path("data/processed/optical_flow")
     output_dir = Path("results/features")
-    checkpoint_dir = output_dir / "checkpoints"
     output_dir.mkdir(parents=True, exist_ok=True)
-    checkpoint_dir.mkdir(parents=True, exist_ok=True)
     
-    # Check GPU configuration and calculate optimal batch size
+    # Check GPU configuration
     gpu_available = check_and_configure_gpu()
     
     print(f"GPU acceleration: {'✅ Enabled' if gpu_available else '❌ Disabled (CPU only)'}")
     print(f"Batch processing: ❌ Disabled (processing one file at a time)")
     print(f"Preprocessing: Optimized for single file, minimal memory use")
+    print(f"Checkpointing/Resume: ❌ Disabled (runs in one go)")
     
     # Collect optical flow paths
     print(f"📋 Collecting optical flow paths from {optical_flow_dir}...")
@@ -236,20 +230,16 @@ def main():
         'start_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'total_flows': len(optical_flow_paths),
         'sequence_length': 16,  # Must be 16 to match I3D model architecture
-        'gpu_acceleration': gpu_available,
-        'resume_capability': True,
-        'checkpoint_interval': 2000
+        'gpu_acceleration': gpu_available
     }
     
     try:
         print(f"   Sequence length: {extraction_stats['sequence_length']} (I3D requirement)")
-        print(f"   Resume capability: ✅ Enabled (checkpoints every {extraction_stats['checkpoint_interval']} files)")
+        print(f"   Resume capability: ❌ Disabled (no checkpointing)")
         
         dynamic_features = extract_dynamic_features_gpu(
             optical_flow_paths,
-            sequence_length=extraction_stats['sequence_length'],
-            checkpoint_dir=checkpoint_dir,
-            resume_from_checkpoint=True
+            sequence_length=extraction_stats['sequence_length']
         )
         
         # Save features
@@ -284,15 +274,9 @@ def main():
         
         # Performance summary
         print(f"\n📊 Performance Summary:")
-        print(f"   • Batch size used: {extraction_stats['batch_size']}")
         print(f"   • GPU utilization: 70-80% (memory limited)")
-        print(f"   • Resume capability: ✅ Available")
-        print(f"   • Checkpoint frequency: Every {extraction_stats['checkpoint_interval']} batches")
-        
-    except KeyboardInterrupt:
-        print(f"\n⏸️ Extraction paused by user")
-        print(f"   Checkpoint saved - you can resume by running the script again")
-        print(f"   Progress will be automatically restored")
+        print(f"   • Resume capability: ❌ Disabled")
+        print(f"   • Checkpointing: ❌ Disabled")
         
     except Exception as e:
         print(f"❌ Dynamic feature extraction failed: {e}")
