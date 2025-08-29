@@ -1,0 +1,89 @@
+# Model Configuration
+model:
+  name: "temporal_cross_attention"
+  num_classes: 174
+  semantic_dim: 1024
+  motion_dim: 2048
+  cross_attention_dim: 512
+  num_attention_heads: 8
+  dropout: 0.1
+
+# Semantic Feature Extractor (DINOv3)
+semantic_extractor:
+  model_name: "facebook/dinov2-vits14"  # Using ViT-S/14 as proxy for S+/16
+  freeze_parameters: true
+  feature_dim: 1024
+
+# Motion Feature Extractor (I3D)
+motion_extractor:
+  model_name: "i3d_r50_kinetics400"  # Will load from torchvision
+  freeze_parameters: true
+  feature_dim: 2048
+  num_frames: 16
+
+# Cross-Attention Configuration
+cross_attention:
+  num_heads: 8
+  dropout: 0.1
+  bidirectional: true
+  use_residual: true
+
+# Training Configuration
+training:
+  batch_size: 8
+  num_epochs: 50
+  learning_rate: 0.0001
+  weight_decay: 0.0001
+  warmup_epochs: 5
+  gradient_clip_norm: 1.0
+  use_mixed_precision: true
+
+  # Optimizer
+  optimizer:
+    name: "adamw"
+    betas: [0.9, 0.999]
+    eps: 1e-8
+
+  # Learning Rate Scheduler
+  scheduler:
+    name: "cosine"
+    warmup_method: "linear"
+
+# Data Configuration
+data:
+  num_frames: 16
+  frame_rate: 12
+  video_ext: ".webm"
+  num_workers: 4
+  prefetch_factor: 2
+
+  # Augmentations
+  augmentations:
+    spatial:
+      random_crop: true
+      random_flip: true
+      color_jitter: true
+    temporal:
+      random_sample: true
+      temporal_jitter: true
+
+# Evaluation Configuration
+evaluation:
+  metrics: ["top1_accuracy", "top5_accuracy", "confusion_matrix"]
+  save_predictions: true
+  compute_per_class: true
+
+# Logging and Checkpointing
+logging:
+  log_level: "INFO"
+  save_frequency: 1  # epochs
+  eval_frequency: 1  # epochs
+  checkpoint_frequency: 5  # epochs
+
+# Paths (relative to project root)
+paths:
+  data_root: "data"
+  experiments_dir: "experiments"
+  logs_dir: "experiments/logs"
+  checkpoints_dir: "experiments/checkpoints"
+  results_dir: "experiments/results"
