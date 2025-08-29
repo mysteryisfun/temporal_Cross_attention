@@ -5,6 +5,9 @@ applyTo: '**'
 # GitHub Copilot Instructions
 
 ## Project Development Guidelines
+- Always activate the conda environment before running anything on your own in terminal
+bash ```conda activate finetune```
+-use powershell commands to interact with the terminal 
 
 ### Code Integrity
 - ALWAYS preserve existing functionality when adding new features
@@ -27,19 +30,6 @@ applyTo: '**'
 - ADD docstrings to all functions and classes
 - UPDATE README files when adding significant features
 - PLACE detailed implementation instructions in the doc/ folder
-
-### Environment & Execution
-- ALWAYS use PowerShell syntax for command examples
-- ALWAYS run scripts yourslef to verify functionality and not asking me to run the scripts
-- DETECT and activate virtual environments before running Python scripts
-- USE the following pattern for virtual environment activation:
-    ```powershell
-    # If virtual environment exists
-    if (Test-Path .\env\Scripts\activate.ps1) {
-            .\venv\Scripts\activate.ps1
-            # Run command
-    }
-    ```
 
 ### Integration Guidelines
 - WRITE clear, step-by-step instructions for module integration
