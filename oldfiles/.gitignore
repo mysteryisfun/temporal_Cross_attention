@@ -1,0 +1,81 @@
+# Python-specific
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyTorch-specific
+*.pth
+*.pt
+*.ckpt
+
+# Dataset
+data/raw/
+data/processed/frames
+data/processed/frames_annotations
+data/faces/
+data/optical_flow/
+data/processed/faces/
+data/processed/optical_flow/
+data/processed/optical_flow_annotations/
+
+data_sample/raw/
+data_sample/processed/processed
+data_sample/faces/
+data_sample/optical_flow/
+
+# Results
+results/model_checkpoints/
+results/ablation_studies/
+results/visualizations/
+results/dynamic_feature_extractor/batch_test/
+results/features/*
+
+# Logs
+logs/
+*.log
+*.log.*
+wandb/
+runs/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Python virtual environment
+.venv/
