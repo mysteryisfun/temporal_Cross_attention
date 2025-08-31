@@ -1,10 +1,12 @@
-# Video Action Recognition with DINOv3 and 3D CNN Cross-Attention Fusion
+# Video Action Recognition with DINOv2 and 3D CNN Cross-Attention Fusion
 
 ## Project Overview
 
 This research project aims to develop a novel, efficient neural network architecture for video action recognition. It builds on the strengths of self-supervised vision transformers and 3D convolutional neural networks to achieve high accuracy and parameter efficiency.
 
-The core innovation involves fusing semantic features learned by the **DINOv3 ViT-S+/16** model with motion features extracted by an **I3D 3D CNN** backbone. These two feature streams are integrated using a trainable **cross-attention** mechanism, enabling the network to leverage both rich object semantics and nuanced temporal dynamics.
+The core innovation involves fusing semantic features learned by the **DINOv2 ViT-S/14** model with motion features extracted by an **I3D 3D CNN** backbone. These two feature streams are integrated using a trainable **cross-attention** mechanism, enabling the network to leverage both rich object semantics and nuanced temporal dynamics.
+
+**Current Status**: Phase 2 Complete ✅ | Phase 3 In Progress 🔄 | Data pipeline fully functional
 
 ## Research Problem & Motivation
 
@@ -23,12 +25,12 @@ We propose a parameter-efficient dual-stream architecture that:
 
 ## Model Architecture
 
-### Semantic Stream: DINOv3 ViT-S+/16
-- **Model**: Self-supervised Vision Transformer with 29M parameters[24]
-- **Training**: Pretrained on 1.6B images without supervision[22]
+### Semantic Stream: DINOv2 ViT-S/14
+- **Model**: Self-supervised Vision Transformer with 21M parameters
+- **Training**: Pretrained on 142M images without supervision
 - **Output**: 1024-dimensional semantic embeddings per frame
 - **Advantages**: 
-  - Superior dense feature representations[26]
+  - Superior dense feature representations
   - Strong generalization across object categories
   - Captures fine-grained object relationships
   - Optimal balance of performance vs computational cost
@@ -96,7 +98,7 @@ We propose a parameter-efficient dual-stream architecture that:
 |--------|------------------|-----------------|---------|-------------|
 | CAST | Hand-crafted | 3D CNN | Concatenation | 100% |
 | TimeSformer | ViT | Self-attention | Temporal modeling | 100% |
-| **Ours** | **DINOv3** | **I3D** | **Cross-attention** | **15%** |
+| **Ours** | **DINOv2** | **I3D** | **Cross-attention** | **15%** |
 
 ## Expected Outcomes & Performance Targets
 
@@ -111,7 +113,7 @@ We propose a parameter-efficient dual-stream architecture that:
 - **Efficiency Gain**: 95% parameter reduction vs full fine-tuning
 
 ### Ablation Studies Planned
-1. **Semantic Stream**: DINOv3 ViT-S+/16 vs DINOv2 vs CLIP
+1. **Semantic Stream**: DINOv2 ViT-S/14 vs CLIP vs supervised pretraining
 2. **Motion Stream**: I3D vs R(2+1)D vs C3D  
 3. **Fusion Method**: Cross-attention vs concatenation vs element-wise
 4. **Attention Heads**: 4 vs 8 vs 16 heads analysis
