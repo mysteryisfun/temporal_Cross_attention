@@ -208,7 +208,8 @@ class MemoryEfficientVideoDataset(Dataset):
                 categories = json.load(f)
                 # Handle both list and dict formats
                 if isinstance(categories, dict):
-                    label_map = categories
+                    # Convert string label values to integers
+                    label_map = {k: int(v) for k, v in categories.items()}
                 else:
                     label_map = {cat: idx for idx, cat in enumerate(categories)}
         
@@ -228,7 +229,9 @@ class MemoryEfficientVideoDataset(Dataset):
                         
                         # Get label
                         if 'template' in item:
-                            label_text = item['template'].replace('[', '').replace(']', '')
+                            label_text = item['template']
+                            # Normalize template: replace [something] with something
+                            label_text = label_text.replace('[something]', 'something')
                         elif 'label' in item:
                             label_text = item['label']
                         elif 'category' in item:
@@ -239,7 +242,10 @@ class MemoryEfficientVideoDataset(Dataset):
                         if label_text and label_text in label_map:
                             labels.append(label_map[label_text])
                         else:
-                            labels.append(0)  # Unknown label
+                            # Log the missing template for debugging
+                            if label_text:
+                                logger.debug(f"Unknown template for video {video_id}: '{label_text}'")
+                            labels.append(-1)  # Use -1 for unknown instead of 0
                     else:
                         # Handle simple list format
                         video_id = str(item)
