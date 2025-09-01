@@ -29,7 +29,7 @@ class I3DMotionExtractor(nn.Module):
 
     This class handles:
     - Loading pretrained I3D/R3D model
-    - Processing video sequences (8 frames)
+    - Processing video sequences (16 frames)
     - Extracting motion features
     - Temporal feature aggregation
     """
@@ -39,7 +39,7 @@ class I3DMotionExtractor(nn.Module):
         model_type: str = "r3d_18",
         device: str = "auto",
         freeze_weights: bool = True,
-        num_frames: int = 8
+        num_frames: int = 16
     ):
         """
         Initialize the I3D motion extractor.
@@ -235,7 +235,7 @@ def create_motion_extractor(
     model_type: str = "r3d_18",
     device: str = "auto",
     freeze_weights: bool = True,
-    num_frames: int = 8
+    num_frames: int = 16
 ) -> I3DMotionExtractor:
     """
     Factory function to create an I3D motion extractor.
