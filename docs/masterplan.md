@@ -89,15 +89,46 @@ temporal_cross_attention/
 
 ---
 
-## 🔄 Phase 3: Model Architecture Implementation (Week 5-7) - IN PROGRESS
+## 🔄 Phase 3: GASM-CAST Architecture Implementation (Week 5-8) - UPGRADED SCOPE
 
-### 3.1 Semantic Feature Extractor (DINOv2 ViT-S/14) 🔄
-**Status**: Started - Basic structure created
-- 🔄 Implement DINOv2 ViT-S/14 model loading and inference
-- 🔄 Create feature extraction pipeline for individual frames
-- 🔄 Implement feature caching for training efficiency
-- 🔄 Add model freezing capabilities (85%+ parameters frozen)
-- 🔄 Validate feature quality and dimensionality (1024D)
+### 3.1 Feature Extraction Components ✅
+**Status**: Complete
+- ✅ **DINOv3 ViT-B/16 Semantic Extractor**: 768D features, 86M parameters (facebook/dinov3-vitb16-pretrain-lvd1689m)
+- ✅ **I3D Motion Extractor**: 512D features, 16-frame temporal processing, R3D-18 backbone
+- ✅ **Memory-Efficient DataLoader**: RTX 3050 optimized with feature caching system
+- ✅ **Dataset Validation**: Something-Something-V2 labels verified for research accuracy
+
+### 3.2 GASM-CAST Architecture Implementation 🔄
+**Status**: Next Phase - Graph-Aware Semantic-Motion Cross-Attention with Temporal Structure
+
+**Innovation**: Three cutting-edge techniques combined:
+1. **Graph Attention Networks** - Intra-modal feature refinement
+2. **Bottleneck Cross-Attention (B-CAST)** - Efficient cross-modal fusion  
+3. **Progressive Multi-Layer Learning** - Hierarchical understanding
+
+**3.2A Metadata Generation (Week 5)**:
+- [ ] Generate spatial positions for DINOv3 patches (14×14 grid, 196 positions)
+- [ ] Create temporal positions for I3D segments (8 segments from 16 frames)
+- [ ] Universal metadata arrays (architecture-dependent, content-independent)
+
+**3.2B Intra-Modal Graph Attention (Week 5-6)**:
+- [ ] **Semantic Graph Attention**: 
+  - Learn patch relationships based on spatial proximity + semantic similarity
+  - Connect hand patches to object patches, cluster background patches
+- [ ] **Motion Graph Attention**:
+  - Learn segment relationships based on temporal adjacency + motion similarity  
+  - Connect motion sequences with similar patterns
+
+**3.2C Progressive Cross-Modal Fusion (Week 6-7)**:
+- [ ] **Layer 1 - Basic Correspondences**: Patch type ↔ Motion type mapping
+- [ ] **Layer 2 - Pattern Correspondences**: Object pattern ↔ Motion trajectory mapping
+- [ ] **Layer 3 - Action Correspondences**: Semantic+Motion → Action class mapping
+- [ ] **B-CAST Implementation**: 768D/512D → 256D bottleneck → cross-attention → residual
+
+**3.2D Integration & Testing (Week 7-8)**:
+- [ ] End-to-end pipeline integration
+- [ ] Attention visualization tools
+- [ ] Computational efficiency analysis (target: 50% reduction vs vanilla cross-attention)
 
 ### 3.2 Motion Feature Extractor (I3D) ⏳
 **Status**: Planned

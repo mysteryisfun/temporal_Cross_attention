@@ -4,7 +4,7 @@
 This document outlines the systematic phase-by-phase implementation of a novel video action recognition system that fuses DINOv3 ViT semantic features with I3D 3D CNN motion features using cross-attention mechanisms. The project targets 75-78% Top-1 accuracy on Something-Something-V2 with <20M trainable parameters.
 
 **Timeline**: 14-16 weeks | **Dataset**: Something-Something-V2 (220,847 videos, 174 classes)
-**Current Status**: Phase 3 Progress: 66% Complete ✅🔄 | Cross-Attention Implementation Next
+**Current Status**: Phase 3 Progress: 66% Complete ✅🔄 | **GASM-CAST Architecture Implementation Next**
 
 ---
 
@@ -128,27 +128,42 @@ temporal_cross_attention/
 - ✅ Temporal visualization scripts (scripts/visualize_temporal_motion.py)
 - ✅ Real dataset integration testing confirmed
 
-### 3.3 Cross-Attention Fusion Module Development 🔄
-**Status**: NEXT - Ready to Start
-**Objective**: Develop the core cross-attention mechanism for feature fusion
+### 3.3 GASM-CAST Architecture Implementation 🔄
+**Status**: NEXT - Ready to Start (Upgraded from Simple Cross-Attention)
+**Objective**: Implement Graph-Aware Semantic-Motion Cross-Attention with Temporal Structure
+
+**Architecture Overview**: 
+- 🧠 **Graph Attention Networks** for intra-modal feature refinement
+- 🔄 **Bottleneck Cross-Attention (B-CAST)** for efficient cross-modal fusion  
+- 📈 **Progressive Multi-Layer Learning** for hierarchical understanding
 
 **Prerequisites**: 
-- ✅ Semantic features: 768D from DINOv3 ViT-B/16
-- ✅ Motion features: 512D from R3D-18
+- ✅ Semantic features: 768D from DINOv3 ViT-B/16 ([196 patches])
+- ✅ Motion features: 512D from R3D-18 ([8 temporal segments])
 - ✅ Both extractors tested and validated with real data
 
-**Key Activities**:
-- [ ] Implement multi-head attention mechanism with 8 attention heads
-- [ ] Design bidirectional attention architecture for semantic-motion interaction
-- [ ] Create projection layers for common embedding space transformation
-- [ ] Implement residual connections and layer normalization
-- [ ] Add regularization components for training stability
-- [ ] Design feature fusion strategies (concatenation + projection)
+**Phase 2A: Metadata Generation**:
+- [ ] Generate spatial positions for DINOv3 patches (14×14 grid coordinates)
+- [ ] Extract temporal positions for I3D segments (8 segments from 16 frames)
+- [ ] Create universal metadata arrays (architecture-dependent, not content-dependent)
+
+**Phase 2B: Intra-Modal Graph Attention**:
+- [ ] **Semantic Graph Attention**: Learn patch-to-patch relationships based on spatial proximity and semantic similarity
+- [ ] **Motion Graph Attention**: Learn segment-to-segment relationships based on temporal adjacency and motion similarity
+- [ ] Output: Context-aware refined features for both modalities
+
+**Phase 2C: Progressive Cross-Modal Fusion**:
+- [ ] **Layer 1 - Basic Correspondences**: "This patch type ↔ this motion type" (Hand patches ↔ Contact motions)
+- [ ] **Layer 2 - Pattern Correspondences**: "This object pattern ↔ this motion pattern" (Shape ↔ Trajectory)
+- [ ] **Layer 3 - Action Correspondences**: "Semantic context + Motion = Action class"
+- [ ] **B-CAST Implementation**: 768D/512D → 256D bottleneck → cross-attention → residual integration
 
 **Deliverables**:
-- [ ] Complete cross-attention fusion module
-- [ ] Architecture validation results
-- [ ] Training stability assessment
+- [ ] Metadata generation utilities
+- [ ] Graph attention modules (semantic + motion)
+- [ ] 3-layer B-CAST architecture with progressive learning
+- [ ] Attention visualization and interpretability tools
+- [ ] Efficiency analysis (target: 50% computational reduction vs vanilla cross-attention)
 
 ### 3.4 Complete Model Integration ⏳
 **Status**: Planned

@@ -63,6 +63,3 @@ feature_dim = extractor.get_feature_dim()  # 768
 - Patch information correctly computed
 
 The semantic feature extractor is **ready for integration** with the motion extractor and cross-attention fusion module!
-
-
-test commit 
